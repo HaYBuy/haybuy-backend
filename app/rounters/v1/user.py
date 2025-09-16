@@ -1,6 +1,7 @@
-from fastapi import APIRouter   
+from fastapi import APIRouter, HTTPException
 from datetime import datetime
 from ...db.models.Users.User import User
+from app.schemas.user_schema import UserCreate, UserResponse
 
 rounter = APIRouter(prefix="/user", tags=["user"])
 
@@ -34,52 +35,75 @@ fake_User_db = {
 }
 
 
-@rounter.get("/")
+@rounter.get("/", response_model=list[UserResponse])
 async def get_user():
-    return {
-        "message": "List of users",
-        "users": list(fake_User_db.values()),
-    }
+    return list(fake_User_db.values())
 
-@rounter.get("/{user_id}")
+@rounter.get("/{user_id}", response_model=UserResponse)
 async def get_user_by_id(user_id: int):
     for user in fake_User_db.values():
         if user["id"] == user_id:
-            return {
-                "message": "User found",
-                "user": user,
-            }
-    return {"error": "User not found"}
+            return user
+    raise HTTPException(status_code=404, detail="User not found")
 
-@rounter.post("/")
-async def create_user(user: User):
+@rounter.post("/" , response_model=UserResponse)
+async def create_user(user: UserCreate):
     if user.username in fake_User_db:
         return {"error": "Username already exists"}
-    user.id = len(fake_User_db) + 1
-    user.created_at = datetime.now()
-    user.updated_at = datetime.now()
-    fake_User_db[user.username] = user.dict()
-    return {
-        "message": "User created successfully",
-        "user": user,
-    }
+    new_user = User(
+        username=user.username,
+        password_hash=user.password_hash,
+        full_name=user.full_name,
+        email=user.email,
+        is_active=True,
+        role=user.role,
+        id=len(fake_User_db) + 1,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        deleted_at=None,
+        last_login=None,
+    )
+    fake_User_db[new_user.username] = new_user.dict()
+    return new_user
 
-@rounter.put("/{user_id}")
-async def update_user(user_id: int, user: User):
+@rounter.put("/{user_id}", response_model=UserResponse)
+async def update_user(user_id: int, user: UserCreate):
     for username, existing_user in fake_User_db.items():
         if existing_user["id"] == user_id:
-            user.updated_at = datetime.now()
-            fake_User_db[username] = user.dict()
-            return {
-                "message": "User updated successfully",
-                "user": user,
-            } 
-    return {"error": "User not found"}
+            update_user = User(
+                username=user.username,
+                password_hash=user.password_hash,
+                full_name=user.full_name,
+                email=user.email,
+                is_active=True,
+                role=user.role,
+                id=fake_User_db[username]["id"],
+                created_at=fake_User_db[username]["created_at"],
+                updated_at=datetime.now(),
+                deleted_at=None,
+                last_login=None,
+            )
+            fake_User_db[username] = update_user.dict()
+            return update_user
+    raise HTTPException(status_code=404, detail="User not found")
 
-@rounter.delete("/{user_id}")
+@rounter.delete("/{user_id}", response_model=UserResponse)
 async def delete_user(user_id: int):
     for username, user in list(fake_User_db.items()):
         if user["id"] == user_id:
-            del fake_User_db[username]
-            return {"message": "User deleted successfully"}
-    return {"error": "User not found"}
+            delete_user = User(
+                username= fake_User_db[username]["username"],
+                password_hash=fake_User_db[username]["password_hash"],
+                full_name=fake_User_db[username]["full_name"],
+                email=fake_User_db[username]["email"],
+                role=fake_User_db[username]["role"],
+                id=fake_User_db[username]["id"],
+                created_at=fake_User_db[username]["created_at"],
+                is_active=False,
+                updated_at=datetime.now(),
+                deleted_at=datetime.now(),
+                last_login=None,
+            )
+            fake_User_db[username] = delete_user.dict()
+            return delete_user
+    raise HTTPException(status_code=404, detail="User not found")
