@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from datetime import datetime
 from ...db.models.Users.User import User
 from app.schemas.user_schema import UserCreate, UserResponse
+from app.core.security import get_current_user
 
 rounter = APIRouter(prefix="/user", tags=["user"])
 
