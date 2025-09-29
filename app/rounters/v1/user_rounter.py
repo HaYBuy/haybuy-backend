@@ -8,7 +8,6 @@ rounter = APIRouter(prefix="/user", tags=["user"])
 
 fake_User_db = {
     "johndoe": {
-        "id": 1,
         "username": "johndoe",
         "password_hash": "password1",
         "full_name": "John Doe",
@@ -21,7 +20,6 @@ fake_User_db = {
         "last_login": None,
     },
     "alice": {
-        "id": 2,
         "username": "alice",
         "password_hash": "password2",
         "full_name": "Alice Wonderland",

@@ -1,3 +1,4 @@
+from typing import Annotated
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -17,7 +18,7 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
     return encoded_jwt
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",

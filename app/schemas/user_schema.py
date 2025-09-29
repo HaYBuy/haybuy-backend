@@ -3,14 +3,13 @@ from datetime import datetime
 
 class UserBase(BaseModel):
     username: str
-    password_hash: str
     full_name: str
     email: str
     is_active: bool
     role: str
 
 class UserCreate(UserBase):
-    pass
+    password_hash: str
 
 class UserResponse(UserBase):
     id: int
