@@ -1,12 +1,12 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 
+
 class UserBase(BaseModel):
     username: str
     full_name: str
-    email: str
+    email: EmailStr
     is_active: bool
-    role: str
 
 class UserCreate(UserBase):
     password_hash: str

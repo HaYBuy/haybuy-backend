@@ -1,5 +1,5 @@
 from ...database import Base
-from sqlalchemy import Column, Integer, String, Float , DateTime
+from sqlalchemy import Column, Integer, String, Float , DateTime, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from datetime import datetime
@@ -27,9 +27,9 @@ class Item(Base):
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
-    owner_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     category_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    group_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
 
     owner = relationship("User", back_populates="items")  
     group = relationship("Group", back_populates="items")

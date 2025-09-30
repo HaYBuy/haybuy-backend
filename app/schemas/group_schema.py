@@ -1,7 +1,13 @@
+from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from typing import List
+
+class GroupRole(str, Enum):
+    OWNER = "owner"
+    ADMIN = "admin"
+    MEMBER = "member"
 
 
 class GroupBase(BaseModel):
@@ -9,8 +15,8 @@ class GroupBase(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
     follower_count: int = 0
-    
-    owner_id: int = Field(..., gt=0)
+
+    owner_id: int = Field(..., gt=0) 
     member_ids: Optional[List[int]] = []  # List of user IDs
 
 class GroupCreate(GroupBase):

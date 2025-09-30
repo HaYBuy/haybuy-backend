@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 from ...db.database import get_db
 
 from ...db.models.items.main import Item
-from app.schemas.item_schema import ItemCreate, ItemResponse, ItemStatus
+from ...schemas.item_schema import ItemCreate, ItemResponse, ItemStatus
 
-from app.core.security import get_current_user
+from ...core.security import get_current_user
 
 rounter = APIRouter(prefix="/item", tags=["item"])  
 
@@ -27,7 +27,7 @@ rounter = APIRouter(prefix="/item", tags=["item"])
 #10. อัพโหลดรูป item (ร้านของตัวเอง) - ใช้ Cloudinary
 
 # get item by search + filter + pagination
-@rounter.get("/search/", response_model=List[ItemResponse])
+@rounter.get("/", response_model=List[ItemResponse])
 async def list_items(
     search: Optional[str] = None,
     min_price: Optional[float] = None,
@@ -143,102 +143,6 @@ async def change_item_status(
         raise HTTPException(status_code=400, detail="Invalid status")
     
     db_item = db.query(Item).filter(Item.id == item_id, Item.owner_id == current_user["id"]).first()
-    if not db_item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    
-    db_item.status = status
-    db.commit()
-    db.refresh(db_item)
-    return db_item
-
-
-#ดึง item by group id + pagination (หน้า shop)
-@rounter.get("/group/{group_id}/items", response_model=List[ItemResponse])
-async def get_items_by_group(
-    group_id: int,
-    skip: int = 0,
-    limit: int = 10,
-    db: Session = Depends(get_db)
-):
-    items = db.query(Item).filter(Item.group_id == group_id).offset(skip).limit(limit).all()
-    return items
-
-@rounter.post("/group/{group_id}/items", response_model=ItemResponse)
-async def create_item_in_group(
-    group_id: int,
-    item: ItemCreate,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    db_item = Item(
-        name=item.name,
-        description=item.description,
-        price=item.price,
-        quantity=item.quantity,
-        status=item.status.value,
-        image_url=item.image_url,
-        search_text=item.search_text,
-        owner_id=current_user["id"],
-        category_id=item.category_id,
-        group_id=group_id
-    )
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    return db_item
-
-@rounter.put("/group/{group_id}/items/{item_id}", response_model=ItemResponse)
-async def update_item_in_group(
-    group_id: int,
-    item_id: int,
-    item: ItemCreate,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    db_item = db.query(Item).filter(Item.id == item_id, Item.group_id == group_id, Item.owner_id == current_user["id"]).first()
-    if not db_item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    
-    db_item.name = item.name
-    db_item.description = item.description
-    db_item.price = item.price
-    db_item.quantity = item.quantity
-    db_item.status = item.status.value
-    db_item.image_url = item.image_url
-    db_item.search_text = item.search_text
-    db_item.category_id = item.category_id
-    
-    db.commit()
-    db.refresh(db_item)
-    return db_item
-
-@rounter.delete("/group/{group_id}/items/{item_id}")
-async def delete_item_in_group(
-    group_id: int,
-    item_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    db_item = db.query(Item).filter(Item.id == item_id, Item.group_id == group_id, Item.owner_id == current_user["id"]).first()
-    if not db_item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    
-    db_item.deleted_at = datetime.now(ZoneInfo("Asia/Bangkok"))
-    db.commit()
-    return {"detail": "Item deleted"}
-
-@rounter.patch("/group/{group_id}/items/{item_id}/status", response_model=ItemResponse)
-async def change_item_status_in_group(
-    group_id: int,
-    item_id: int,
-    status: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    if status not in [s.value for s in ItemStatus]:
-        raise HTTPException(status_code=400, detail="Invalid status")
-    
-    db_item = db.query(Item).filter(Item.id == item_id, Item.group_id == group_id, Item.owner_id == current_user["id"]).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
     
