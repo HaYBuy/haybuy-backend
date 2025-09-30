@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 from ...db.database import get_db
 
-from ...db.models.items.main import Item
+from ...db.models.items.item import Item
 from ...schemas.item_schema import ItemCreate, ItemResponse, ItemStatus
 
 from ...core.security import get_current_user
@@ -60,7 +60,7 @@ async def get_item(item_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Item not found")
     return db_item
 
-@rounter.get("/my/items", response_model=List[ItemResponse])
+@rounter.get("/my", response_model=List[ItemResponse])
 async def get_my_items(
     skip: int = 0,
     limit: int = 10,
@@ -70,7 +70,7 @@ async def get_my_items(
     items = db.query(Item).filter(Item.owder_id == current_user["id"]).offset(skip).limit(limit).all()
     return items
 
-@rounter.post("/my/items", response_model=ItemResponse)
+@rounter.post("/my", response_model=ItemResponse)
 async def create_my_item(
     item: ItemCreate,
     db: Session = Depends(get_db),
@@ -93,7 +93,7 @@ async def create_my_item(
     db.refresh(db_item)
     return db_item
 
-@rounter.put("/my/items/{item_id}", response_model=ItemResponse)
+@rounter.put("/my/{item_id}", response_model=ItemResponse)
 async def update_my_item(
     item_id: int,
     item: ItemCreate,
@@ -118,7 +118,7 @@ async def update_my_item(
     db.refresh(db_item)
     return db_item
 
-@rounter.delete("/my/items/{item_id}")
+@rounter.delete("/my/{item_id}")
 async def delete_my_item(
     item_id: int,
     db: Session = Depends(get_db),
@@ -132,7 +132,7 @@ async def delete_my_item(
     db.commit()
     return {"detail": "Item deleted"}
 
-@rounter.patch("/my/items/{item_id}/status", response_model=ItemResponse)
+@rounter.patch("/my/{item_id}/status", response_model=ItemResponse)
 async def change_item_status(
     item_id: int,
     status: str,

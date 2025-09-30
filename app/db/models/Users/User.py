@@ -29,6 +29,7 @@ class User(Base):
     owned_groups = relationship("Group", back_populates="owner")
     groups = relationship("GroupMember", back_populates="user")
     editPrice = relationship("PriceHistory", back_populates="editer")
+    wishItem = relationship("WishItem", back_populates="wisher")
 
 
     # groups = relationship("Group", secondary="group_members", back_populates="members")

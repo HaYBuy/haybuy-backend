@@ -36,4 +36,7 @@ class Item(Base):
     owner = relationship("User", back_populates="items")  
     group = relationship("Group", back_populates="items")
     priceHistory = relationship("PriceHistory", back_populates="item")
+    wishItem = relationship("WishItem", back_populates="itemWish")
+
+
 

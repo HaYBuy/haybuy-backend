@@ -5,7 +5,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 from ...db.database import get_db
-from ...db.models.items.main import Item
+from ...db.models.items.item import Item
 from ...db.models.Groups.group import Group
 from ..v1.group_rounter import rounter as group_rounter
 from ...schemas.item_schema import ItemCreate, ItemResponse, ItemStatus
