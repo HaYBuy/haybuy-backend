@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, condecimal
 from datetime import datetime
 from typing import Optional
 from enum import Enum
@@ -12,7 +12,7 @@ class ItemStatus(str, Enum):
 class ItemBase(BaseModel):
     name: str
     description: Optional[str] = None
-    price: float
+    price: condecimal(max_digits=10, decimal_places=2)
     quantity: int
     status: ItemStatus = ItemStatus.AVAILABLE
     image_url: Optional[str] = None
