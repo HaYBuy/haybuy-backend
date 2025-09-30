@@ -27,6 +27,7 @@ class User(Base):
 
     items = relationship("Item", back_populates="owner")
     owned_groups = relationship("Group", back_populates="owner")
+    groups = relationship("GroupMember", back_populates="user")
 
 
     # groups = relationship("Group", secondary="group_members", back_populates="members")

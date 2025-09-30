@@ -44,7 +44,7 @@ async def list_items(
         q = q.filter(Item.name.ilike(f"%{search}%"))
     if category_id is not None:
         q = q.filter(Item.category_id == category_id)
-    if min_price is not None:
+    if min_price is not None: 
         q = q.filter(Item.price >= min_price)
     if max_price is not None:
         q = q.filter(Item.price <= max_price)

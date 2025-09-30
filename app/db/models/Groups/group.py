@@ -21,11 +21,11 @@ class Group(Base):
     follower_count = Column(Integer, default=0)
     
     owner_id : Mapped[int] = mapped_column(ForeignKey("users.id"))
-    # owner_id : Mapped[int] = Column(Integer, nullable=False)
     member_ids : Mapped[int] = Column(String, nullable=True)  # Comma-separated user IDs
 
     owner = relationship("User", back_populates="owned_groups")
     items = relationship("Item", back_populates="group")
+    members = relationship("GroupMember", back_populates="group")
 
     created_at = Column(DateTime(timezone=True), default=get_thai_time)
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)

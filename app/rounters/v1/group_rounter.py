@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 from ...db.database import get_db
 
-from ...db.models.Groups.main import Group
+from ...db.models.Groups.group import Group
 from app.schemas.group_schema import GroupCreate, GroupResponse
 
 from app.core.security import get_current_user

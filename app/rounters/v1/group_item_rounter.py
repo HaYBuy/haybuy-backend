@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 from ...db.database import get_db
 from ...db.models.items.main import Item
-from ...db.models.Groups.main import Group
+from ...db.models.Groups.group import Group
 from ..v1.group_rounter import rounter as group_rounter
 from ...schemas.item_schema import ItemCreate, ItemResponse, ItemStatus
 from ...core.security import get_current_user
