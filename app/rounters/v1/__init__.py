@@ -7,6 +7,7 @@ from . import (
     group_item_rounter,
     group_rounter,
     group_member_rounter,
+    category_rounter,
 )
 
 router = APIRouter(prefix="/v1")
@@ -16,3 +17,4 @@ router.include_router(item_rounter.rounter)
 router.include_router(group_item_rounter.rounter)
 router.include_router(group_rounter.rounter)
 router.include_router(group_member_rounter.rounter)
+router.include_router(category_rounter.rounter)
