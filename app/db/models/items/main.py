@@ -1,9 +1,11 @@
 from ...database import Base
-from sqlalchemy import Column, Integer, String, Float , DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float , DateTime, ForeignKey, DECIMAL
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+
 
 from ....schemas.item_schema import ItemStatus
 
@@ -17,7 +19,7 @@ class Item(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
     description = Column(String, nullable=True)
-    price = Column(Float, nullable=False)
+    price = Column(DECIMAL(precision=10, scale=2), nullable=False)
     quantity = Column(Integer, nullable=False)
     status = Column(String, default=ItemStatus.AVAILABLE.value)
     image_url = Column(String, nullable=True)
@@ -33,3 +35,5 @@ class Item(Base):
 
     owner = relationship("User", back_populates="items")  
     group = relationship("Group", back_populates="items")
+    priceHistory = relationship("PriceHistory", back_populates="item")
+
