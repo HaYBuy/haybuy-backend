@@ -18,6 +18,6 @@ class PriceHistory(Base):
     user_id : Mapped[int] = mapped_column(ForeignKey("users.id"))
 
     item = relationship("Item", back_populates="priceHistory")
-    user = relationship("User", back_populates="editPrice")
+    editer = relationship("User", back_populates="editPrice")
 
 
