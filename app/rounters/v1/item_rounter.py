@@ -52,6 +52,16 @@ async def list_items(
     items = q.offset(skip).limit(limit).all()
     return items
 
+@rounter.get("/my", response_model=List[ItemResponse])
+async def get_my_items(
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    items = db.query(Item).filter(Item.owner_id == current_user["id"], Item.deleted_at == None).offset(skip).limit(limit).all()
+    return items
+
 # get item by id (detail page)
 @rounter.get("/{item_id}", response_model=ItemResponse)
 async def get_item(item_id: int, db: Session = Depends(get_db)):
@@ -60,15 +70,6 @@ async def get_item(item_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Item not found")
     return db_item
 
-@rounter.get("/my", response_model=List[ItemResponse])
-async def get_my_items(
-    skip: int = 0,
-    limit: int = 10,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    items = db.query(Item).filter(Item.owder_id == current_user["id"]).offset(skip).limit(limit).all()
-    return items
 
 @rounter.post("/my", response_model=ItemResponse)
 async def create_my_item(

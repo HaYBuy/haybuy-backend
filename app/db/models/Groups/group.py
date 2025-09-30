@@ -21,7 +21,7 @@ class Group(Base):
     follower_count = Column(Integer, default=0)
     
     owner_id : Mapped[int] = mapped_column(ForeignKey("users.id"))
-    member_ids : Mapped[int] = Column(String, nullable=True)  # Comma-separated user IDs
+    # member_ids : Mapped[int] = Column(String, nullable=True)  # Comma-separated user IDs
 
     owner = relationship("User", back_populates="owned_groups")
     items = relationship("Item", back_populates="group")

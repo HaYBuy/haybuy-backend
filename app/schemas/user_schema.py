@@ -6,10 +6,11 @@ class UserBase(BaseModel):
     username: str
     full_name: str
     email: EmailStr
+    password_hash: str
     is_active: bool
 
 class UserCreate(UserBase):
-    password_hash: str
+    pass
 
 class UserResponse(UserBase):
     id: int

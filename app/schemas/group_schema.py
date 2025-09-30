@@ -17,7 +17,6 @@ class GroupBase(BaseModel):
     follower_count: int = 0
 
     owner_id: int = Field(..., gt=0) 
-    member_ids: Optional[List[int]] = []  # List of user IDs
 
 class GroupCreate(GroupBase):
     pass

@@ -12,13 +12,13 @@ def get_thai_time():
     return datetime.now(ZoneInfo("Asia/Bangkok"))
 
 class Category(Base):   
-    __tablename__ = "categorys"
+    __tablename__ = "categories"
 
     id : Mapped[int] = mapped_column(primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
     slug = Column(String, nullable=False)
 
-    parent_id : Mapped[Optional[int]] = mapped_column(ForeignKey("categorys.id"), nullable=True)
+    parent_id : Mapped[Optional[int]] = mapped_column(ForeignKey("categories.id"), nullable=True)
 
     parent : Mapped[Optional["Category"]] = relationship(
         "Category",

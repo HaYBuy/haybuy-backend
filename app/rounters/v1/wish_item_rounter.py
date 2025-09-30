@@ -27,10 +27,10 @@ async def add_wish_item(
 
     db.add(db_wish)
     db.commit()
-    db.refresh()
+    db.refresh(db_wish)
     return db_wish
 
-@rounter.delete("/my/{item_id}", response_model=WishItemResponse)
+@rounter.delete("/my/{item_id}")
 async def remove_wish_item(
     item_id: int,
     db : Session = Depends(get_db),
@@ -42,7 +42,6 @@ async def remove_wish_item(
     
     db.delete(db_wish_item)
     db.commit()
-    db.refresh
     return {"detail": "Wish item deleted"}
 
 @rounter.patch("/my/{wish_id}/privacy", response_model=WishItemResponse)
@@ -52,16 +51,16 @@ async def set_privacy_wish_list(
     db : Session = Depends(get_db),
     current_user : dict = Depends(get_current_user)
 ): 
-    if privacy not in [p.privacy for p in WishPrivacy ]:
+    if privacy not in [p.value for p in WishPrivacy ]:
         raise HTTPException(status_code=400, detail="Invalid Privacy")
     
     db_wish = db.query(WishItem).filter(WishItem.id == wish_id, WishItem.user_id == current_user["id"]).first()  
     if not db_wish:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    db_wish.privacy = privacy 
+    db_wish.privacy = privacy
     db.commit()
-    db.refresh()
+    db.refresh(db_wish)
     return db_wish
 
 @rounter.get("/my", response_model=List[WishItemResponse])

@@ -9,7 +9,7 @@ def get_thai_time():
     return datetime.now(ZoneInfo("Asia/Bangkok"))
 
 class PriceHistory(Base):
-    __tablename__ = "priceHistorys"
+    __tablename__ = "price_histories"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     price = Column(DECIMAL(precision=10, scale=2), nullable=False)
@@ -17,7 +17,7 @@ class PriceHistory(Base):
     item_id : Mapped[int] = mapped_column(ForeignKey("items.id"))
     user_id : Mapped[int] = mapped_column(ForeignKey("users.id"))
 
-    item = relationship("Item", back_populates="priceHistory")
+    item = relationship("Item", back_populates="price_histories")
     editer = relationship("User", back_populates="editPrice")
 
 

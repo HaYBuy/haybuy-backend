@@ -12,6 +12,9 @@ from app.schemas.group_schema import GroupCreate, GroupResponse
 
 from app.core.security import get_current_user
 
+from app.rounters.v1.group_member_rounter import add_member_to_group
+from app.db.models.Groups.groupMember import GroupMember
+
 rounter = APIRouter(prefix="/group", tags=["group"])
 
 #1. ดึง group ของตัวเอง (ร้านของตัวเอง) + pagination
@@ -23,13 +26,19 @@ async def get_my_groups(db: Session = Depends(get_db), current_user: dict = Depe
 #2. สร้าง group (ร้านของตัวเอง)
 @rounter.post("/my", response_model=GroupResponse)
 async def create_group(group: GroupCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    existing_group = db.query(Group).filter(Group.name == group.name).first()
+    if existing_group:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Group name '{group.name}' already exists"
+        )
+    
     new_group = Group(
         name=group.name,
         description=group.description,
         image_url=group.image_url,
         owner_id=current_user["id"],
-        member_ids=str(current_user["id"]),  # Initialize with the creator as the first member
-        #ดึง func จาก member_rounter เพื่อเพิ่ม member เข้ากลุ่ม และกำหนดส role
+
         follower_count=0,
         created_at=datetime.now(ZoneInfo("Asia/Bangkok")),
         updated_at=datetime.now(ZoneInfo("Asia/Bangkok"))
@@ -37,6 +46,17 @@ async def create_group(group: GroupCreate, db: Session = Depends(get_db), curren
     db.add(new_group)
     db.commit()
     db.refresh(new_group)
+
+    owner_member = GroupMember(
+        group_id=new_group.id,
+        user_id=current_user["id"],
+        role="owner"
+    )
+
+    db.add(owner_member)
+    db.commit()
+    db.refresh(owner_member)
+
     return new_group
 
 #3. แก้ไข group (ร้านของตัวเอง) by id

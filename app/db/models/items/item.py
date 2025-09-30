@@ -30,13 +30,12 @@ class Item(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    category_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
 
     owner = relationship("User", back_populates="items")  
     group = relationship("Group", back_populates="items")
-    priceHistory = relationship("PriceHistory", back_populates="item")
+    price_histories = relationship("PriceHistory", back_populates="item")
     wishItem = relationship("WishItem", back_populates="itemWish")
-
 
 
