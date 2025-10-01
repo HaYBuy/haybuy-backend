@@ -32,6 +32,10 @@ class User(Base):
     wishItem = relationship("WishItem", back_populates="wisher")
     profile = relationship("UserProfile", back_populates="user")
 
+    transactions_sold = relationship("Transaction", foreign_keys="[Transaction.seller_id]", back_populates="seller")
+    transactions_bought = relationship("Transaction", foreign_keys="[Transaction.buyer_id]", back_populates="buyer")
+
+
 
     # groups = relationship("Group", secondary="group_members", back_populates="members")
     # transactions = relationship("Transaction", back_populates="user")
