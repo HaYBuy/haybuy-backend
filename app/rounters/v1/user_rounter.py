@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
+
+from app.db.models.Users.UserProfile import UserProfile
 from ...db.models.Users.User import User
 from app.schemas.user_schema import UserCreate, UserResponse
 from app.core.security import get_current_user
@@ -43,26 +45,33 @@ async def update_user(user: UserCreate, db: Session = Depends(get_db), current_u
     db.refresh(db_user)
     return db_user
 
-@rounter.delete("/me", response_model=UserResponse)
+@rounter.delete("/me",)
 async def delete_user(
     db: Session = Depends(get_db), 
     current_user : dict = Depends(get_current_user)
 ):
-    user_db = db.query(User).filter(User.id == current_user["id"])
+    user_db = db.query(User).filter(User.id == current_user["id"]).first()
 
     if not user_db :
         raise HTTPException(status_code=404, detail="User not found or Not have permission")
     
-    user_db.username= user_db.username,
-    user_db.password= user_db.password,
-    user_db.full_name= user_db.full_name,
-    user_db.email =  user_db.email,
-    user_db.created_at = user_db.created_at,
-    user_db.is_active = False,
-    user_db.updated_at=datetime.now(),
-    user_db.deleted_at=datetime.now(),
-    user_db.last_login=datetime.now(),
+    user_db.is_active = False
+    user_db.updated_at=datetime.now()
+    user_db.deleted_at=datetime.now()
+    user_db.last_login=datetime.now()
 
     db.commit()
     db.refresh(user_db)
-    return {"detail":" User delete success "}
+
+    user_profile_db = db.query(UserProfile).filter(UserProfile.user_id == current_user["id"]).first()
+
+    if not user_profile_db:
+        raise HTTPException(status_code=404, detail="Profile not found or Not have permission")
+    
+    user_profile_db.deleted_at = datetime.now()
+    user_profile_db.updated_at = datetime.now()
+
+    db.commit()
+    db.refresh(user_profile_db)
+
+    return {"detail":" User and User Profile delete success "}
