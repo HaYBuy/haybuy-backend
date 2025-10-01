@@ -34,7 +34,7 @@ class Item(Base):
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
 
     owner = relationship("User", back_populates="items")  
-    group = relationship("Group", back_populates="items")
+    group = relationship("GroupItem", back_populates="item")
     price_histories = relationship("PriceHistory", back_populates="item")
     wishItem = relationship("WishItem", back_populates="itemWish")
 

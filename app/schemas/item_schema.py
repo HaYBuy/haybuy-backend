@@ -17,16 +17,14 @@ class ItemBase(BaseModel):
     status: ItemStatus = ItemStatus.AVAILABLE
     image_url: Optional[str] = None
     search_text : Optional[str] = None
-
-    owner_id: int = Field(..., gt=0)
     category_id: int = Field(..., gt=0 )
-    group_id: Optional[int] = None
 
 class ItemCreate(ItemBase):
     pass
 
 class ItemResponse(ItemBase):
     id: int
+    owner_id: int = Field(..., gt=0)
     created_at: datetime
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None

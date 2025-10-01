@@ -39,7 +39,6 @@ async def add_member_to_group(
         group_id=group_id,
         user_id=member.user_id,
         role=member.role,
-        joined_at=datetime.now(ZoneInfo("Asia/Bangkok"))
     )
     db.add(new_member)
     db.commit()

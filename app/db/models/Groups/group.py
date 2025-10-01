@@ -24,7 +24,7 @@ class Group(Base):
     # member_ids : Mapped[int] = Column(String, nullable=True)  # Comma-separated user IDs
 
     owner = relationship("User", back_populates="owned_groups")
-    items = relationship("Item", back_populates="group")
+    items = relationship("GroupItem", back_populates="group")
     members = relationship("GroupMember", back_populates="group")
 
     created_at = Column(DateTime(timezone=True), default=get_thai_time)

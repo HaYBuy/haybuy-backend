@@ -20,4 +20,10 @@ class PriceHistory(Base):
     item = relationship("Item", back_populates="price_histories")
     editer = relationship("User", back_populates="editPrice")
 
+    start_date = Column(DateTime(timezone=True), default=get_thai_time)
+    end_date = Column(DateTime(timezone=True), nullable=True)
+
+
+
+
 

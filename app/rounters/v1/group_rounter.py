@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from typing import List, Optional
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from app.db.models.Groups.group_item import GroupItem
 from sqlalchemy.orm import Session
 from ...db.database import get_db
 
@@ -83,8 +84,12 @@ async def delete_group(group_id: int, db: Session = Depends(get_db), current_use
         raise HTTPException(status_code=404, detail="Group not found or you're not the owner")
     
     db_group.deleted_at = datetime.now(ZoneInfo("Asia/Bangkok"))
+
+    db.query(GroupItem).filter(GroupItem.group_id == group_id).delete(synchronize_session=False)
+    
     db.commit()
-    return {"detail": "Group deleted"}
+    db.refresh(db_group)
+    return Response(status_code=204)
 
 #5. ดึง group by id (สาธารณะ)
 @rounter.get("/{group_id}", response_model=GroupResponse)
