@@ -90,19 +90,3 @@ async def create_user(user: UserCreate , db : Session = Depends(get_db)):
     db.refresh(new_user_profile)
 
     return new_user
-
-@rounter.put("/me", response_model=UserResponse)
-async def update_user(user: UserCreate, db: Session = Depends(get_db), current_user : dict = Depends(get_current_user)):
-    db_user = db.query(User).filter(User.username == current_user["username"]).first()
-    if not db_user :
-        raise HTTPException(status_code=404 , detail="Not found")
-    
-    hashed_pw = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
-    db_user.full_name = user.full_name
-    db_user.password = hashed_pw.decode("utf-8") 
-    db_user.username = db_user.username
-    db_user.email = db_user.email
-
-    db.commit()
-    db.refresh(db_user)
-    return db_user

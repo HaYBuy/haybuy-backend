@@ -14,32 +14,6 @@ load_dotenv()
 
 rounter = APIRouter(prefix="/user", tags=["user"])
 
-fake_User_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "password_hash": "password1",
-        "full_name": "John Doe",
-        "email": "johndoe@gmail.com",
-        "is_active": True,
-        "created_at": "2025-09-16T18:10:40.376324+07:00",
-        "updated_at": "2025-09-16T18:10:40.376324+07:00",
-        "deleted_at": None,
-        "last_login": None,
-    },
-    "alice": {
-        "username": "alice",
-        "password_hash": "password2",
-        "full_name": "Alice Wonderland",
-        "email": "alice@gmail.com",
-        "is_active": True,
-        "created_at": "2025-09-16T18:10:40.376324+07:00",
-        "updated_at": "2025-09-16T18:10:40.376324+07:00",
-        "deleted_at": None,
-        "last_login": None,
-    },
-}
-
-
 @rounter.get("/", response_model=list[UserResponse])
 async def get_user(db: Session = Depends(get_db)):
     users = db.query(User).filter(User.deleted_at == None).all()
@@ -55,47 +29,40 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
 
 @rounter.put("/me", response_model=UserResponse)
 async def update_user(user: UserCreate, db: Session = Depends(get_db), current_user : dict = Depends(get_current_user)):
-    db_user = db.query(User).filter(User.id == current_user["id"])
+    db_user = db.query(User).filter(User.username == current_user["username"]).first()
     if not db_user :
         raise HTTPException(status_code=404 , detail="Not found")
     
+    hashed_pw = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
     db_user.full_name = user.full_name
+    db_user.password = hashed_pw.decode("utf-8") 
+    db_user.username = db_user.username
+    db_user.email = db_user.email
 
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
-    for username, existing_user in fake_User_db.items():
-        if existing_user["id"] == user_id:
-            update_user = User(
-                username=user.username,
-                password_hash=user.password_hash,
-                full_name=user.full_name,
-                email=user.email,
-                is_active=True,
-                id=fake_User_db[username]["id"],
-                created_at=fake_User_db[username]["created_at"],
-                updated_at=datetime.now(),
-                deleted_at=None,
-                last_login=None,
-            )
-            fake_User_db[username] = update_user.dict()
-            return update_user
-    raise HTTPException(status_code=404, detail="User not found")
+@rounter.delete("/me", response_model=UserResponse)
+async def delete_user(
+    db: Session = Depends(get_db), 
+    current_user : dict = Depends(get_current_user)
+):
+    user_db = db.query(User).filter(User.id == current_user["id"])
 
-@rounter.delete("/{user_id}", response_model=UserResponse)
-async def delete_user(user_id: int):
-    for username, user in list(fake_User_db.items()):
-        if user["id"] == user_id:
-            delete_user = User(
-                username= fake_User_db[username]["username"],
-                password_hash=fake_User_db[username]["password_hash"],
-                full_name=fake_User_db[username]["full_name"],
-                email=fake_User_db[username]["email"],
-                id=fake_User_db[username]["id"],
-                created_at=fake_User_db[username]["created_at"],
-                is_active=False,
-                updated_at=datetime.now(),
-                deleted_at=datetime.now(),
-                last_login=None,
-            )
-            fake_User_db[username] = delete_user.dict()
-            return delete_user
-    raise HTTPException(status_code=404, detail="User not found")
+    if not user_db :
+        raise HTTPException(status_code=404, detail="User not found or Not have permission")
+    
+    user_db.username= user_db.username,
+    user_db.password= user_db.password,
+    user_db.full_name= user_db.full_name,
+    user_db.email =  user_db.email,
+    user_db.created_at = user_db.created_at,
+    user_db.is_active = False,
+    user_db.updated_at=datetime.now(),
+    user_db.deleted_at=datetime.now(),
+    user_db.last_login=datetime.now(),
+
+    db.commit()
+    db.refresh(user_db)
+    return {"detail":" User delete success "}
