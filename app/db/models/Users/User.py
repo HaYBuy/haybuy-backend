@@ -15,7 +15,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
     username = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
+    password = Column(String, nullable=False)
     full_name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     is_active = Column(Boolean, default=True)
@@ -30,6 +30,7 @@ class User(Base):
     groups = relationship("GroupMember", back_populates="user")
     editPrice = relationship("PriceHistory", back_populates="editer")
     wishItem = relationship("WishItem", back_populates="wisher")
+    profile = relationship("UserProfile", back_populates="user")
 
 
     # groups = relationship("Group", secondary="group_members", back_populates="members")

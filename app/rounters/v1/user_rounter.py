@@ -1,8 +1,16 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from ...db.models.Users.User import User
 from app.schemas.user_schema import UserCreate, UserResponse
 from app.core.security import get_current_user
+from sqlalchemy.orm import Session
+
+from app.db.database import get_db
+import bcrypt
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 rounter = APIRouter(prefix="/user", tags=["user"])
 
@@ -33,37 +41,27 @@ fake_User_db = {
 
 
 @rounter.get("/", response_model=list[UserResponse])
-async def get_user():
-    return list(fake_User_db.values())
+async def get_user(db: Session = Depends(get_db)):
+    users = db.query(User).filter(User.deleted_at == None).all()
+    return users
 
 @rounter.get("/{user_id}", response_model=UserResponse)
-async def get_user_by_id(user_id: int):
-    for user in fake_User_db.values():
-        if user["id"] == user_id:
-            return user
-    raise HTTPException(status_code=404, detail="User not found")
+async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    user_db = db.query(User).filter(user_id == User.id).first()
+    if not user_db:
+        raise HTTPException(status_code=400, detail="User not found")
+    
+    return user_db
 
-@rounter.post("/" , response_model=UserResponse)
-async def create_user(user: UserCreate):
-    if user.username in fake_User_db:
-        return {"error": "Username already exists"}
-    new_user = User(
-        username=user.username,
-        password_hash=user.password_hash,
-        full_name=user.full_name,
-        email=user.email,
-        is_active=True,
-        id=len(fake_User_db) + 1,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-        deleted_at=None,
-        last_login=None,
-    )
-    fake_User_db[new_user.username] = new_user.dict()
-    return new_user
+@rounter.put("/me", response_model=UserResponse)
+async def update_user(user: UserCreate, db: Session = Depends(get_db), current_user : dict = Depends(get_current_user)):
+    db_user = db.query(User).filter(User.id == current_user["id"])
+    if not db_user :
+        raise HTTPException(status_code=404 , detail="Not found")
+    
+    db_user.full_name = user.full_name
 
-@rounter.put("/{user_id}", response_model=UserResponse)
-async def update_user(user_id: int, user: UserCreate):
+
     for username, existing_user in fake_User_db.items():
         if existing_user["id"] == user_id:
             update_user = User(

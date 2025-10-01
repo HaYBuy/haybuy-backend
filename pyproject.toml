@@ -20,7 +20,9 @@ dependencies = [
     "psycopg2 (>=2.9.10,<3.0.0)",
     "dotenv (>=0.9.9,<0.10.0)",
     "tzdata (>=2025.2,<2026.0)",
-    "python-multipart (>=0.0.20,<0.0.21)"
+    "python-multipart (>=0.0.20,<0.0.21)",
+    "bcrypt (>=5.0.0,<6.0.0)",
+    "geoalchemy2 (>=0.18.0,<0.19.0)"
 ]
 
 

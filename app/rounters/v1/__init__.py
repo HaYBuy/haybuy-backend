@@ -9,7 +9,8 @@ from . import (
     group_member_rounter,
     category_rounter,
     wish_item_rounter,
-    auth_rounter
+    auth_rounter,
+    user_profile_rounter,
 )
 
 router = APIRouter(prefix="/v1")
@@ -22,3 +23,4 @@ router.include_router(group_rounter.rounter)
 router.include_router(group_member_rounter.rounter)
 router.include_router(category_rounter.rounter)
 router.include_router(wish_item_rounter.rounter)
+router.include_router(user_profile_rounter.rounter)

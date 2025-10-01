@@ -6,18 +6,18 @@ class UserBase(BaseModel):
     username: str
     full_name: str
     email: EmailStr
-    password_hash: str
-    is_active: bool
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 class UserResponse(UserBase):
     id: int
+    is_active: bool
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
     last_login: datetime | None = None
+
 
     class Config:
         from_attributes = True
