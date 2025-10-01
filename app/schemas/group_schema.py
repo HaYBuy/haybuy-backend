@@ -14,8 +14,6 @@ class GroupBase(BaseModel):
     name: str
     description: Optional[str] = None
     image_url: Optional[str] = None
-    follower_count: int = 0
-
     owner_id: int = Field(..., gt=0) 
 
 class GroupCreate(GroupBase):
@@ -23,6 +21,7 @@ class GroupCreate(GroupBase):
 
 class GroupResponse(GroupBase):
     id: int
+    follower_count: int = 0
     created_at: datetime
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
