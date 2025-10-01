@@ -64,7 +64,7 @@ async def get_my_items(
     items = db.query(Item).filter(Item.owner_id == current_user["id"], Item.deleted_at == None).offset(skip).limit(limit).all()
     return items
 
-@rounter.get("/my/{item_id}/pricehistories", response_model=List[ItemResponse])
+@rounter.get("/my/{item_id}/pricehistories", response_model=List[PriceHistoryResponse])
 async def get_price_item_histories(
     item_id : int,
     skip: int = 0,
@@ -76,7 +76,10 @@ async def get_price_item_histories(
     if not item_db:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    item_histories_db = db.query(PriceHistory).filter(PriceHistory.item_id == item_id).offset(skip).limit(limit).all()
+    item_histories_db = db.query(PriceHistory).filter(
+        PriceHistory.item_id == item_id, 
+        PriceHistory.user_id == current_user["id"]
+    ).offset(skip).limit(limit).all()
 
     return item_histories_db
 
@@ -89,13 +92,16 @@ async def get_item(item_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Item not found")
     return db_item
 
-
 @rounter.post("/my", response_model=ItemResponse)
 async def create_my_item(
     item: ItemCreate,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    existing_item_this_user_db = db.query(Item).filter(Item.name == item.name ,Item.owner_id == current_user["id"]).first()
+    if existing_item_this_user_db :
+        raise HTTPException(status_code=403, detail="Item already exist in this user")
+    
     db_item = Item(
         name=item.name,
         description=item.description,
@@ -106,11 +112,22 @@ async def create_my_item(
         search_text=item.search_text,
         owner_id=current_user["id"],
         category_id=item.category_id,
-        group_id=item.group_id
+        group_id= None
     )
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
+
+    new_price_history_db = PriceHistory(
+        price = item.price,
+        item_id = db_item.id,
+        user_id = current_user["id"],
+    )
+
+    db.add(new_price_history_db)
+    db.commit()
+    db.refresh(new_price_history_db)
+
     return db_item
 
 @rounter.put("/my/{item_id}", response_model=ItemResponse)
@@ -132,7 +149,7 @@ async def update_my_item(
     db_item.image_url = item.image_url
     db_item.search_text = item.search_text
     db_item.category_id = item.category_id
-    db_item.group_id = item.group_id
+    db_item.group_id = db_item.group_id
     
     db.commit()
     db.refresh(db_item)
