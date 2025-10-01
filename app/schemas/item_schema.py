@@ -18,7 +18,6 @@ class ItemBase(BaseModel):
     image_url: Optional[str] = None
     search_text : Optional[str] = None
     category_id: int = Field(..., gt=0 )
-    group_id: Optional[int] = None
 
 class ItemCreate(ItemBase):
     pass
