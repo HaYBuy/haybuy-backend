@@ -9,6 +9,8 @@ from ...db.database import get_db
 
 from ...db.models.items.item import Item
 from ...schemas.item_schema import ItemCreate, ItemResponse, ItemStatus
+from app.db.models.PriceHistorys.main import PriceHistory
+from app.schemas.price_history import PriceHistoryCreate, PriceHistoryResponse
 
 from ...core.security import get_current_user
 
@@ -61,6 +63,23 @@ async def get_my_items(
 ):
     items = db.query(Item).filter(Item.owner_id == current_user["id"], Item.deleted_at == None).offset(skip).limit(limit).all()
     return items
+
+@rounter.get("/my/{item_id}/pricehistories", response_model=List[ItemResponse])
+async def get_price_item_histories(
+    item_id : int,
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    item_db = db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
+    if not item_db:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    item_histories_db = db.query(PriceHistory).filter(PriceHistory.item_id == item_id).offset(skip).limit(limit).all()
+
+    return item_histories_db
+
 
 # get item by id (detail page)
 @rounter.get("/{item_id}", response_model=ItemResponse)
