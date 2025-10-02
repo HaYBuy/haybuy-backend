@@ -5,6 +5,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
+
+from app.db.models.Groups.groupMember import GroupMember
 from ...db.database import get_db
 
 from ...db.models.items.item import Item
@@ -16,17 +18,6 @@ from ...core.security import get_current_user
 
 rounter = APIRouter(prefix="/item", tags=["item"])  
 
-
-#1. ดึง item ไปแสดงหน้า home ดึงสินค้ามาทั้งหมด + pagination
-#2. ดึง item ไปแสดงหน้า shop ดึงสินค้าตามหมวดหมู่ + pagination
-#3. ดึง item ไปแสดงหน้า detail ดึงสินค้าตาม id
-#4. ดึง item ไปแสดงแบบ search + filter + pagination
-#5. ดึง item ของตัวเอง (ร้านของตัวเอง) + pagination
-#6. สร้าง item (ร้านของตัวเอง)
-#7. แก้ไข item (ร้านของตัวเอง)
-#8. ลบ item (ร้านของตัวเอง) - soft delete
-#9. เปลี่ยนสถานะ item (ร้านของตัวเอง) - available, out of stock, discontinued
-#10. อัพโหลดรูป item (ร้านของตัวเอง) - ใช้ Cloudinary
 
 # get item by search + filter + pagination
 @rounter.get("/", response_model=List[ItemResponse])
@@ -54,14 +45,14 @@ async def list_items(
     items = q.offset(skip).limit(limit).all()
     return items
 
-@rounter.get("/my", response_model=List[ItemResponse])
+@rounter.get("/{user_id}", response_model=List[ItemResponse])
 async def get_my_items(
+    user_id : int,
     skip: int = 0,
     limit: int = 10,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
 ):
-    items = db.query(Item).filter(Item.owner_id == current_user["id"], Item.deleted_at == None).offset(skip).limit(limit).all()
+    items = db.query(Item).filter(Item.owner_id == user_id, Item.deleted_at == None).offset(skip).limit(limit).all()
     return items
 
 @rounter.get("/my/{item_id}/pricehistories", response_model=List[PriceHistoryResponse])
@@ -137,9 +128,23 @@ async def update_my_item(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    db_item = db.query(Item).filter(Item.id == item_id, Item.owner_id == current_user["id"]).first()
+    db_item = db.query(Item).filter(Item.id == item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
+    
+    is_owner = db_item.owner_id == current_user["id"]
+
+    is_group_member = (
+        db.query(GroupMember)
+        .filter(
+            GroupMember.group_id == db_item.group_id,
+            GroupMember.user_id == current_user["id"],
+            GroupMember.role.in_(["owner", "admin"])
+        )
+        .first()
+    ) is not None
+    if not (is_owner or is_group_member):
+        raise HTTPException(status_code=403, detail="You are not allowed to edit this item")
     
     db_item.name = item.name
     db_item.description = item.description
@@ -161,11 +166,23 @@ async def delete_my_item(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    db_item = db.query(Item).filter(Item.id == item_id, Item.owner_id == current_user["id"]).first()
+    db_item = db.query(Item).filter(Item.id == item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
     
+    is_owner = db_item.owner_id == current_user["id"]
+
+
+    if not (is_owner):
+        raise HTTPException(status_code=403, detail="You are not allowed to delete this item")
+
+
+    db_item = db.query(Item).filter(Item.id == item_id, Item.owner_id == current_user["id"]).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item not found 2")
+    
     db_item.deleted_at = datetime.now(ZoneInfo("Asia/Bangkok"))
+    db_item.group_id = None
     db.commit()
     return {"detail": "Item deleted"}
 
@@ -179,7 +196,28 @@ async def change_item_status(
     if status not in [s.value for s in ItemStatus]:
         raise HTTPException(status_code=400, detail="Invalid status")
     
-    db_item = db.query(Item).filter(Item.id == item_id, Item.owner_id == current_user["id"]).first()
+    db_item = db.query(Item).filter(Item.id == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    is_owner = db_item.owner_id == current_user["id"]
+
+    is_group_member = (
+        db.query(GroupMember)
+        .filter(
+            GroupMember.group_id == db_item.group_id,
+            GroupMember.user_id == current_user["id"],
+            GroupMember.role.in_(["owner", "admin"])
+        )
+        .first()
+        is not None
+    )
+
+    if not (is_owner or is_group_member):
+        raise HTTPException(status_code=403, detail="You are not allowed to edit this item")
+    
+
+    db_item = db.query(Item).filter(Item.id == item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
     

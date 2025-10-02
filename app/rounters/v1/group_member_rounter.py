@@ -7,7 +7,7 @@ from ...db.database import get_db
 from ...db.models.Groups.group import Group
 from ...db.models.Groups.groupMember import GroupMember
 from ...db.models.Users.User import User
-from ...schemas.group_member_schema import GroupMemberCreate, GroupMemberResponse
+from ...schemas.group_member_schema import GroupMemberCreate, GroupMemberResponse, GroupMemberRole
 from ...core.security import get_current_user
 
 rounter = APIRouter(prefix="/group_member", tags=["group_member"])

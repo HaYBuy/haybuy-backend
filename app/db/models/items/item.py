@@ -38,4 +38,6 @@ class Item(Base):
     price_histories = relationship("PriceHistory", back_populates="item")
     wishItem = relationship("WishItem", back_populates="itemWish")
 
+    transaction = relationship("Transaction", back_populates="item")
+
 

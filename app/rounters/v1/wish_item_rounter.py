@@ -97,16 +97,14 @@ async def get_my_wish_list(
 
 
 
-@rounter.get("/my/share/{target_id}", response_model=List[ItemResponse])
+@rounter.get("/my/share/{target_id}", response_model=List[WishItemResponse])
 async def share_my_wish_List(
     target_id : int,
     skip : int = 0,
     limit : int = 10,
     db: Session = Depends(get_db),
 ):
-    wish_items_db = db.query(Item).join(WishItem, Item.id == WishItem.item_id)\
-                                  .filter(WishItem.user_id == target_id, 
-                                          WishItem.privacy == WishPrivacy.PUBLIC.value
-                                        ).offset(skip).limit(limit).all()
+    wish_items_db = db.query(WishItem).filter(WishItem.user_id == target_id, WishItem.privacy == WishPrivacy.PUBLIC.value)\
+                                          .offset(skip).limit(limit).all()
     
     return wish_items_db
