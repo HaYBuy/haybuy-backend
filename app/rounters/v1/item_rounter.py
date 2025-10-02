@@ -142,9 +142,7 @@ async def update_my_item(
             GroupMember.role.in_(["owner", "admin"])
         )
         .first()
-        is not None
-    )
-
+    ) is not None
     if not (is_owner or is_group_member):
         raise HTTPException(status_code=403, detail="You are not allowed to edit this item")
     
