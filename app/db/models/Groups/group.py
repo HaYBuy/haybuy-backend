@@ -31,3 +31,5 @@ class Group(Base):
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
+    
+
