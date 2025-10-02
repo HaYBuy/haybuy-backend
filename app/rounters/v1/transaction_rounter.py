@@ -120,7 +120,7 @@ def cancel_transaction(
     
     # ยกเลิก transaction
     transaction.status = TransactionStatus.CANCELLED
-    transaction.cancelled_at = datetime.utcnow()  # ถ้ามี column สำหรับเวลา cancel
+    transaction.cancelled_at = datetime.now(ZoneInfo('Asia/Bangkok'))  # ถ้ามี column สำหรับเวลา cancel
 
 
     db.commit()
