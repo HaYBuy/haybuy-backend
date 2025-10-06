@@ -3,7 +3,8 @@ name = "test-init-fast"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Charif",email = "hifrook.zen5@gmail.com"}
+    {name = "Charif",email = "hifrook.zen5@gmail.com"},
+    {name = "Adithep",email = "adithepbaebmueann@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.13"
