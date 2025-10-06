@@ -15,18 +15,25 @@ from sqlalchemy.orm import Session
 
 rounter = APIRouter(prefix="/auth", tags=["auth"])
 
+
 class LoginRequest(BaseModel):
     username: str
     password: str
 
+
 @rounter.post("/token")
-async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Session = Depends(get_db),
+):
     hashed_pw = bcrypt.hashpw(form_data.password.encode(), bcrypt.gensalt())
     user_db = db.query(User).filter(User.username == form_data.username).first()
-    if not user_db :
+    if not user_db:
         raise HTTPException(status_code=400, detail="Invalid username or password")
-    
-    if not bcrypt.checkpw(form_data.password.encode("utf-8"), user_db.password.encode("utf-8")):
+
+    if not bcrypt.checkpw(
+        form_data.password.encode("utf-8"), user_db.password.encode("utf-8")
+    ):
         raise HTTPException(status_code=400, detail="Invalid username or password")
 
     access_token = create_access_token(
@@ -37,17 +44,20 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @rounter.post("/login")
 async def login_for_access_token(data: LoginRequest, db: Session = Depends(get_db)):
     user_db = db.query(User).filter(User.username == data.username).first()
     if not user_db:
         raise HTTPException(status_code=400, detail="Invalid username or password")
-    
-    if not bcrypt.checkpw(data.password.encode("utf-8"), user_db.password.encode("utf-8")):
+
+    if not bcrypt.checkpw(
+        data.password.encode("utf-8"), user_db.password.encode("utf-8")
+    ):
         raise HTTPException(status_code=400, detail="Invalid username or password")
 
     access_token = create_access_token(
-        data={ 
+        data={
             "username": user_db.username,
             "id": user_db.id,
         }
@@ -55,20 +65,17 @@ async def login_for_access_token(data: LoginRequest, db: Session = Depends(get_d
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@rounter.post("/register" , response_model=UserResponse)
-async def create_user(user: UserCreate , db : Session = Depends(get_db)):
+@rounter.post("/register", response_model=UserResponse)
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.username == user.username).first()
     if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail=f"User already exists"
-        )
-    
+        raise HTTPException(status_code=400, detail=f"User already exists")
+
     hashed_pw = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
 
     new_user = User(
         username=user.username,
-        password=hashed_pw.decode("utf-8") ,
+        password=hashed_pw.decode("utf-8"),
         full_name=user.full_name,
         email=user.email,
         is_active=True,
@@ -81,9 +88,7 @@ async def create_user(user: UserCreate , db : Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    new_user_profile = UserProfile(
-        user_id = new_user.id
-    )
+    new_user_profile = UserProfile(user_id=new_user.id)
 
     db.add(new_user_profile)
     db.commit()
