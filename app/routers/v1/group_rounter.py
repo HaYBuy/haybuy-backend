@@ -13,7 +13,7 @@ from app.schemas.group_schema import GroupCreate, GroupResponse
 
 from app.core.security import get_current_user
 
-from app.rounters.v1.group_member_rounter import add_member_to_group
+from app.routers.v1.group_member_rounter import add_member_to_group
 from app.db.models.Groups.groupMember import GroupMember
 
 rounter = APIRouter(prefix="/group", tags=["group"])

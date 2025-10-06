@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16
+    container_name: haybuy-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${POSTGRES_DB:-haybuy_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - haybuy_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: haybuy-api
+    # ผูก env จากไฟล์ .env ถ้าต้องการ
+    env_file:
+      - .env
+    environment:
+      # ให้แอปชี้ DB ผ่าน service name = db (อย่าใช้ localhost)
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin}@db:5432/${POSTGRES_DB:-haybuy_db}
+      RUNNING_IN_DOCKER: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+volumes:
+  haybuy_pgdata:
