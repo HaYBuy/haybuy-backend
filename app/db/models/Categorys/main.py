@@ -26,4 +26,7 @@ class Category(Base):
         backref=backref("children", cascade="all, delete")
     )
 
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=get_thai_time)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=get_thai_time, onupdate=get_thai_time)
+
     
