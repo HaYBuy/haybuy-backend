@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List, Optional
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -48,26 +48,30 @@ async def add_member_to_group(
 #แก้ไข role member ใน group (ร้านของตัวเอง) by group_id และ user_id
 @rounter.put("/group/my/{group_id}/members/{user_id}", response_model=GroupMemberResponse)
 async def update_member_role_in_group(
-    group_id: int,
-    user_id: int,
     member: GroupMemberCreate,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     # check ว่ามี group_id นี้อยู่จริงไหม และมีสิทธิ์เป็นแก้ไข group นี้ไหม
-    db_group = db.query(Group).filter(Group.id == group_id, Group.owner_id == current_user["id"]).first()
+    db_group = db.query(Group).filter(Group.id == member.group_id, Group.owner_id == current_user["id"]).first()
     if not db_group:
         raise HTTPException(status_code=404, detail="Group not found or you're not the owner")
     
     # check ว่า user ที่จะเพิ่มเข้า group มีอยู่จริงไหม
-    db_user = db.query(User).filter(User.id == user_id).first()
+    db_user = db.query(User).filter(User.id == member.user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
     # check ว่า user คนนี้อยู่ใน group นี้หรือยัง
-    existing_member = db.query(GroupMember).filter(GroupMember.group_id == group_id, GroupMember.user_id == user_id).first()
+    existing_member = db.query(GroupMember).filter(GroupMember.group_id == member.group_id, GroupMember.user_id == member.user_id).first()
     if not existing_member:
         raise HTTPException(status_code=400, detail="User is not a member of this group")
+    
+    if member.role not in GroupMemberRole:
+        raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=f"Invalid role: {member.role}"
+    )
     
     existing_member.role = member.role
     db.commit()
