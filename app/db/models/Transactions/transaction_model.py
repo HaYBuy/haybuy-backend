@@ -32,6 +32,7 @@ class Transaction(Base):
     created_at = Column(DateTime(timezone=True), default=get_thai_time)
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)
     cancelled_at = Column(DateTime(timezone=True), nullable=True)
+    paid_at = Column(DateTime(timezone = True), nullable=True)
 
     item = relationship("Item", back_populates="transaction")
     seller = relationship("User", foreign_keys=[seller_id], back_populates="transactions_sold")

@@ -56,21 +56,25 @@ async def remove_wish_item(
 @rounter.patch("/my/{wish_id}/privacy", response_model=WishItemResponse)
 async def set_privacy_wish_list(
     wish_id : int,
-    privacy : str,
     db : Session = Depends(get_db),
     current_user : dict = Depends(get_current_user)
 ): 
-    if privacy not in [p.value for p in WishPrivacy ]:
-        raise HTTPException(status_code=400, detail="Invalid Privacy")
     
-    db_wish = db.query(WishItem).filter(WishItem.id == wish_id, WishItem.user_id == current_user["id"]).first()  
-    if not db_wish:
-        raise HTTPException(status_code=404, detail="Item not found")
+    wish = db.query(WishItem).filter(WishItem.id == wish_id).first()
+    if not wish:
+        raise HTTPException(status_code=404, detail="Wish item not found")
 
-    db_wish.privacy = privacy
+    if wish.user_id != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not allowed to change privacy")
+
+    if wish.privacy == "private":
+        wish.privacy = "public"
+    else:
+        wish.privacy = "private"
+
     db.commit()
-    db.refresh(db_wish)
-    return db_wish
+    db.refresh(wish)
+    return wish
 
 @rounter.get("/my/items", response_model=List[ItemResponse])
 async def get_my_wish_list(
@@ -101,7 +105,7 @@ async def get_my_wish_list(
 async def share_my_wish_List(
     target_id : int,
     skip : int = 0,
-    limit : int = 10,
+    limit : int = 10,   
     db: Session = Depends(get_db),
 ):
     wish_items_db = db.query(WishItem).filter(WishItem.user_id == target_id, WishItem.privacy == WishPrivacy.PUBLIC.value)\
