@@ -10,7 +10,7 @@ from app.db.models.Users.User import User
 from app.schemas.item_schema import ItemStatus
 from ...db.database import get_db
 from ...db.models.items.item import Item
-from ...schemas.transaction_schema import TransactionCreate, TransactionResponse, TransactionStatus, TransactionAccepted
+from ...schemas.transaction_schema import TransactionCreate, TransactionResponse, TransactionRole, TransactionStatus, TransactionAccepted
 from ...core.security import get_current_user
 from app.db.models.Transactions.transaction_model import Transaction
 
@@ -22,10 +22,12 @@ async def create_transaction(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    
     existing_item = db.query(Item).filter(Item.id == data.item_id).first()
     if not existing_item:
         raise HTTPException(status_code=404, detail=" Item not found")
-    
+     
+
     if existing_item.quantity - data.amount < 1 or existing_item.status != ItemStatus.AVAILABLE:
         raise HTTPException(status_code=400, detail="Item is not available")
 
@@ -128,6 +130,31 @@ def cancel_transaction(
     db.refresh(item_db)
     return transaction
 
+@rounter.patch('/paid/{transaction_id}')
+async def paid_transaction(
+    transaction_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    transaction = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    user_id = current_user["id"]
+
+    if transaction.buyer_id != user_id:
+        raise HTTPException(status_code=403, detail="You are not buyer of this transaction")
+    
+    transaction.status = TransactionStatus.PAID
+    transaction.paid_at = datetime.now(ZoneInfo('Asia/Bangkok'))
+
+    db.commit()
+    db.refresh(transaction)
+
+    return transaction
+
+
+
 @rounter.patch("/{transaction_id}", response_model=TransactionResponse)
 async def change_transaction_detail(
     transaction_id : int,
@@ -171,11 +198,6 @@ async def get_my_transaction(
     ).all()
 
     return transactions
-
-
-class TransactionRole(str, Enum):
-    buyer = "buyer"
-    seller = "seller"
     
 def update_transaction_accept(
     db: Session, transaction_id: int, current_user: dict, role: TransactionRole, accepter: bool, accept_at: datetime

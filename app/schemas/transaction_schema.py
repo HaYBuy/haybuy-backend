@@ -7,7 +7,11 @@ class TransactionStatus(str, Enum):
     PENDING = "pending"
     CANCELLED = "cancelled"
     ACCEPTED = "accepted"
+    PAID = "paid"
 
+class TransactionRole(str, Enum):
+    buyer = "buyer"
+    seller = "seller"
 
 class TransactionBase(BaseModel):
     item_id : int = Field(..., gt=0)
@@ -30,6 +34,7 @@ class TransactionResponse(TransactionBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     cancelled_at: Optional[datetime] = None
+    paid_at : Optional[datetime] = None
 
     buyer_accept : bool
     seller_accept : bool

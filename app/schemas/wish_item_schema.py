@@ -13,7 +13,7 @@ class WishPrivacy(str, Enum):
 class WishItemBase(BaseModel):
     user_id : int = Field(..., gt=0)
     item_id : int = Field(..., gt=0)
-    privacy: str = WishPrivacy.PRIVATE
+    privacy: str = WishPrivacy.PRIVATE.value
 
 class WishItemCreate(WishItemBase):
     pass
