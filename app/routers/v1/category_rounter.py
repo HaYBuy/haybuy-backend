@@ -23,7 +23,7 @@ async def create_category(
         raise HTTPException(status_code=409, detail="Category name already exists")
 
 
-    if category.parent_id is not None and category.parent_id == 0:
+    if category.parent_id is not None and category.parent_id != 0:
         existing_parent = db.query(Category).filter(Category.id == category.parent_id).first()
         if not existing_parent:
             raise HTTPException(status_code=404, detail="Parent category not found")

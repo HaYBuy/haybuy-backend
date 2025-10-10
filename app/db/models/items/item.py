@@ -31,13 +31,12 @@ class Item(Base):
     
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
-    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"), nullable=True)
 
     owner = relationship("User", back_populates="items")  
     group = relationship("GroupItem", back_populates="item")
     price_histories = relationship("PriceHistory", back_populates="item")
     wishItem = relationship("WishItem", back_populates="itemWish")
-
     transaction = relationship("Transaction", back_populates="item")
 
 
