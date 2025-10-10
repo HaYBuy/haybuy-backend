@@ -6,6 +6,7 @@ from datetime import datetime
 class GroupMemberRole(str, Enum):
     OWNER = "owner"
     ADMIN = "admin"
+    MEMBER = "member"
 
 class GroupMemberBase(BaseModel):
     user_id: int = Field(..., gt=0)

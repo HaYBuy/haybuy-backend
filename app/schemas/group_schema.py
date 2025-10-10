@@ -14,13 +14,14 @@ class GroupBase(BaseModel):
     name: str
     description: Optional[str] = None
     image_url: Optional[str] = None
-    owner_id: int = Field(..., gt=0) 
 
 class GroupCreate(GroupBase):
+    owner_id: int = Field(..., gt=0) 
     pass
 
 class GroupResponse(GroupBase):
     id: int
+    owner_id: int = Field(..., gt=0) 
     follower_count: int = 0
     created_at: datetime
     updated_at: Optional[datetime] = None
