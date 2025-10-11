@@ -44,10 +44,14 @@ pipeline {
                         gnupg \
                         lsb-release \
                         ca-certificates \
-                        openjdk-17-jre-headless \
+                        openjdk-21-jre-headless \
                         unzip
                     
+                    echo "=== Verify Java installation ==="
+                    java -version
+                    
                     # Install Docker CLI
+                    echo "=== Installing Docker CLI ==="
                     install -m 0755 -d /etc/apt/keyrings
                     curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
                     chmod a+r /etc/apt/keyrings/docker.asc
@@ -56,15 +60,17 @@ pipeline {
                     apt-get install -y docker-ce-cli
                     
                     # Install Docker Compose
+                    echo "=== Installing Docker Compose ==="
                     curl -SL "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
                     chmod +x /usr/local/bin/docker-compose
                     
                     # Install SonarQube Scanner
+                    echo "=== Installing SonarQube Scanner ==="
                     curl -o /tmp/sonar-scanner.zip -L https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
                     unzip -q /tmp/sonar-scanner.zip -d /opt
                     ln -s /opt/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner /usr/local/bin/sonar-scanner
                     
-                    echo "=== Verify installations ==="
+                    echo "=== Verify all installations ==="
                     python3 --version
                     docker --version
                     docker-compose --version
@@ -199,8 +205,6 @@ EOF
                 timeout(time: 5, unit: 'MINUTES') {
                     script {
                         echo "=== Waiting for Quality Gate ==="
-                        // Note: Quality Gate check requires SonarQube plugin in Jenkins
-                        // If not installed, this stage can be skipped
                         try {
                             waitForQualityGate abortPipeline: false
                             echo "✅ Quality Gate passed"
