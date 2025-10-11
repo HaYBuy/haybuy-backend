@@ -63,18 +63,32 @@ pipeline {
             }
         }
 
-        stage('Run Tests & Coverage') {
+        stage('Start test DB') {
+  steps {
+    sh '''
+      set -eux
+      docker rm -f pg-test || true
+      docker run -d --name pg-test \
+        -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=haybuy_test \
+        -p 5432:5432 postgres:15
+      for i in {1..30}; do
+        docker exec pg-test pg_isready -U postgres && break || sleep 2
+      done
+    '''
+  }
+}
+stage('Run Tests & Coverage') {
   environment {
-    DATABASE_URL = 'sqlite:///./haybuy_test.db'
-    // # หรือใช้ SQLite ไม่ต้องมี service: 'sqlite:///./haybuy_test.db'
-    // withCredentials สามารถประกบเป็น URL ได้ (ดูตัวอย่างด้านล่าง)
+    DATABASE_URL = 'postgresql+psycopg2://postgres:postgres@localhost:5432/haybuy_test'
   }
   steps {
     sh '''
       set -eux
-      export PYTHONPATH="$WORKSPACE:${PYTHONPATH}"
+      export PYTHONPATH="${WORKSPACE}:${PYTHONPATH:-}"
       . fastapi-env/bin/activate
-      pytest --maxfail=1 --disable-warnings -q --cov=app --cov-report=xml --junitxml=junit-report.xml
+      pytest --maxfail=1 --disable-warnings -q \
+        --cov=app --cov-report=xml \
+        --junitxml=junit-report.xml
     '''
   }
 }
