@@ -137,25 +137,27 @@ EOF
             steps {
                 sh '''
                     set -e
-                    echo "=== Starting test database ==="
-                    docker-compose up -d db
-                    
-                    echo "=== Waiting for database to be healthy ==="
-                    for i in 1 2 3 4 5 6; do
-                        if docker-compose ps db | grep -q "healthy"; then
-                            echo "✅ Database is healthy"
-                            break
-                        else
-                            echo "⏳ Waiting for database... attempt $i/6"
-                            sleep 5
-                        fi
-                    done
-                    
-                    echo "=== Database status ==="
-                    docker-compose ps
+                    echo "=== Creating .env.test for tests ==="
+                    cat > .env.test << EOF
+DATABASE_URL=sqlite:///:memory:
+RUNNING_IN_DOCKER=false
+SECRET_KEY=${SECRET_KEY}
+ALGORITHM=${ALGORITHM}
+ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+ENVIRONMENT=test
+EOF
                     
                     echo "=== Running tests ==="
-                    venv/bin/pytest --cov=. --cov-report=xml --cov-report=html --junitxml=test-results.xml -v || true
+                    venv/bin/pytest tests/ \
+                        --cov=app \
+                        --cov-report=xml:coverage.xml \
+                        --cov-report=html:htmlcov \
+                        --cov-report=term \
+                        --junitxml=test-results.xml \
+                        -v || true
+                    
+                    echo "=== Verify report files ==="
+                    ls -lh coverage.xml test-results.xml || echo "⚠️ Report files not found"
                 '''
             }
             post {
@@ -180,17 +182,21 @@ EOF
                         withCredentials([string(credentialsId: 'sonarqube-token-backend', variable: 'SONAR_TOKEN')]) {
                             sh '''
                                 set -e
-                                echo "=== Running SonarQube Analysis ==="
+                                echo "=== Verify report files before SonarQube ==="
+                                ls -lh coverage.xml test-results.xml pylint-report.txt 2>/dev/null || echo "⚠️ Some report files missing"
                                 
+                                echo "=== Running SonarQube Analysis ==="
                                 sonar-scanner \
                                   -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                                   -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
-                                  -Dsonar.sources=. \
+                                  -Dsonar.sources=app \
+                                  -Dsonar.tests=tests \
                                   -Dsonar.host.url=${SONAR_HOST_URL} \
                                   -Dsonar.token=${SONAR_TOKEN} \
                                   -Dsonar.python.version=3.13 \
                                   -Dsonar.sourceEncoding=UTF-8 \
-                                  -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/tests/**,**/.pytest_cache/**,**/htmlcov/**,**/*.pyc \
+                                  -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/.pytest_cache/**,**/htmlcov/**,**/*.pyc \
+                                  -Dsonar.test.exclusions=**/tests/** \
                                   -Dsonar.python.coverage.reportPaths=coverage.xml \
                                   -Dsonar.python.xunit.reportPath=test-results.xml \
                                   -Dsonar.python.pylint.reportPaths=pylint-report.txt \
