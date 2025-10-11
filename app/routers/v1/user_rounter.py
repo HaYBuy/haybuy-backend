@@ -1,4 +1,5 @@
 """User management router."""
+
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 
@@ -13,14 +14,15 @@ from app.routers.v1.auth_rounter import hash_password
 
 rounter = APIRouter(prefix="/user", tags=["user"])
 
+
 @rounter.get("/", response_model=list[UserResponse])
 async def get_user(db: Session = Depends(get_db)):
     """
     Get all active users.
-    
+
     Args:
         db: Database session
-        
+
     Returns:
         List of user objects
     """
@@ -32,47 +34,48 @@ async def get_user(db: Session = Depends(get_db)):
 async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     """
     Get a specific user by ID.
-    
+
     Args:
         user_id: User ID to retrieve
         db: Database session
-        
+
     Returns:
         User object
-        
+
     Raises:
         HTTPException: If user not found
     """
     user_db = db.query(User).filter(user_id == User.id).first()
     if not user_db:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     return user_db
+
 
 @rounter.put("/me", response_model=UserResponse)
 async def update_user(
     user: UserCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Update current user's information.
-    
+
     Args:
         user: User update data
         db: Database session
         current_user: Current authenticated user
-        
+
     Returns:
         Updated user object
-        
+
     Raises:
         HTTPException: If user not found
     """
     db_user = db.query(User).filter(User.id == current_user.id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     # Update fields
     db_user.full_name = user.full_name
     db_user.password = hash_password(user.password)
@@ -83,20 +86,19 @@ async def update_user(
     db.refresh(db_user)
     return db_user
 
+
 @rounter.delete("/me")
 async def delete_user(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     """Soft delete current user and their profile."""
     user_db = db.query(User).filter(User.id == current_user.id).first()
 
     if not user_db:
         raise HTTPException(
-            status_code=404,
-            detail="User not found or insufficient permissions"
+            status_code=404, detail="User not found or insufficient permissions"
         )
-    
+
     # Soft delete user
     user_db.is_active = False
     user_db.updated_at = datetime.now()
@@ -106,9 +108,9 @@ async def delete_user(
     db.refresh(user_db)
 
     # Soft delete user profile
-    user_profile_db = db.query(UserProfile).filter(
-        UserProfile.user_id == current_user.id
-    ).first()
+    user_profile_db = (
+        db.query(UserProfile).filter(UserProfile.user_id == current_user.id).first()
+    )
 
     if user_profile_db:
         user_profile_db.deleted_at = datetime.now()

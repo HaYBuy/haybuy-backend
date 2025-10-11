@@ -1,4 +1,5 @@
 """Database configuration and session management."""
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 import os
@@ -31,7 +32,7 @@ class Base(DeclarativeBase):
 def get_db():
     """
     Dependency function to get database session.
-    
+
     Yields:
         Database session that will be automatically closed after use
     """

@@ -1,4 +1,5 @@
 """Authentication router for user login and registration."""
+
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
@@ -22,6 +23,7 @@ rounter = APIRouter(prefix="/auth", tags=["auth"])
 
 class LoginRequest(BaseModel):
     """Login request model."""
+
     username: str
     password: str
 
@@ -29,16 +31,15 @@ class LoginRequest(BaseModel):
 def hash_password(password: str) -> str:
     """
     Hash a password using bcrypt with secure salt rounds.
-    
+
     Args:
         password: Plain text password to hash
-        
+
     Returns:
         Hashed password string
     """
     hashed = bcrypt.hashpw(
-        password.encode("utf-8"),
-        bcrypt.gensalt(rounds=BCRYPT_SALT_ROUNDS)
+        password.encode("utf-8"), bcrypt.gensalt(rounds=BCRYPT_SALT_ROUNDS)
     )
     return hashed.decode("utf-8")
 
@@ -46,17 +47,16 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a password against its hash.
-    
+
     Args:
         plain_password: Plain text password to verify
         hashed_password: Hashed password to compare against
-        
+
     Returns:
         True if password matches, False otherwise
     """
     return bcrypt.checkpw(
-        plain_password.encode("utf-8"),
-        hashed_password.encode("utf-8")
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
     )
 
 
@@ -67,14 +67,14 @@ async def login_for_access_token(
 ):
     """
     OAuth2 compatible token login endpoint.
-    
+
     Args:
         form_data: OAuth2 password request form with username and password
         db: Database session
-        
+
     Returns:
         Dictionary with access_token and token_type
-        
+
     Raises:
         HTTPException: If credentials are invalid
     """
@@ -98,14 +98,14 @@ async def login_for_access_token(
 async def login(data: LoginRequest, db: Session = Depends(get_db)):
     """
     Alternative login endpoint with JSON body.
-    
+
     Args:
         data: Login request with username and password
         db: Database session
-        
+
     Returns:
         Dictionary with access_token and token_type
-        
+
     Raises:
         HTTPException: If credentials are invalid
     """
@@ -129,14 +129,14 @@ async def login(data: LoginRequest, db: Session = Depends(get_db)):
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user account.
-    
+
     Args:
         user: User creation data
         db: Database session
-        
+
     Returns:
         Created user object
-        
+
     Raises:
         HTTPException: If username already exists
     """

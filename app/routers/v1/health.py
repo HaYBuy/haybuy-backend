@@ -1,4 +1,5 @@
 """Health check endpoint for monitoring and CI/CD."""
+
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,10 +12,10 @@ router = APIRouter()
 async def health_check():
     """
     Health check endpoint for CI/CD and monitoring.
-    
+
     Returns:
         Dictionary with service status and database connectivity
-        
+
     Raises:
         HTTPException: If critical services are unavailable
     """

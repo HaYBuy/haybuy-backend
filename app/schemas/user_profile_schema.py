@@ -1,4 +1,5 @@
 """User profile schema definitions."""
+
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -6,6 +7,7 @@ from datetime import datetime
 
 class UserProfileBase(BaseModel):
     """Base user profile model with common fields."""
+
     phone: Optional[str] = None
     address_line1: Optional[str] = None
     address_line2: Optional[str] = None
@@ -20,6 +22,7 @@ class UserProfileBase(BaseModel):
 
 class UserProfileCreate(UserProfileBase):
     """Schema for creating a new user profile."""
+
 
 class UserProfileResponse(UserProfileBase):
     id: int
