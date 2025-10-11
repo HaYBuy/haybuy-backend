@@ -85,11 +85,11 @@ class TestGetUserById:
     def test_get_user_by_id_not_found(self, client: TestClient):
         """
         Test: ดึงข้อมูล user ด้วย ID ที่ไม่มีในระบบ
-        Expected: ได้รับ status 400 และ error message
+        Expected: ได้รับ status 404 และ error message
         """
         response = client.get("/v1/user/99999")
 
-        assert response.status_code == 400
+        assert response.status_code == 404
         assert response.json()["detail"] == "User not found"
 
     def test_get_user_by_invalid_id_type(self, client: TestClient):

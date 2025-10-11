@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, Response
 from typing import List, Optional
 from datetime import datetime
@@ -17,17 +16,21 @@ from app.db.models.Groups.group_item import GroupItem
 rounter = APIRouter(prefix="/group_item", tags=["group_item"])
 
 
-#ดึง item by group id + pagination (หน้า shop)
+# ดึง item by group id + pagination (หน้า shop)
 @rounter.get("/group/{group_id}/items", response_model=List[ItemResponse])
 async def get_items_by_group(
-    group_id: int,
-    skip: int = 0,
-    limit: int = 10,
-    db: Session = Depends(get_db)
+    group_id: int, skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
 ):
-    items = db.query(Item).filter(Item.group_id == group_id).offset(skip).limit(limit).all()
+    items = (
+        db.query(Item)
+        .filter(Item.group_id == group_id, Item.deleted_at == None)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
     return items
+
 
 # post item ใน group (ร้านของตัวเอง)
 @rounter.post("/group/my/{group_id}/items/{item_id}", response_model=ItemResponse)
@@ -35,70 +38,89 @@ async def create_item_in_group(
     group_id: int,
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
-    #check ว่ามี group_id นี้อยู่จริงไหม และมีสิทธิ์เป็นแก้ไข group นี้ไหม
-    #จะเพิ่ม role check ในอนาคต เพราะอาจจะมีทั้ง owner และ admin ที่สามารถเพิ่ม item ได้
+    # check ว่ามี group_id นี้อยู่จริงไหม และมีสิทธิ์เป็นแก้ไข group นี้ไหม
+    # จะเพิ่ม role check ในอนาคต เพราะอาจจะมีทั้ง owner และ admin ที่สามารถเพิ่ม item ได้
 
     user_id = current_user["id"]
-    group_member = db.query(GroupMember).filter(GroupMember.user_id == user_id, GroupMember.group_id == group_id).first()
+    group_member = (
+        db.query(GroupMember)
+        .filter(GroupMember.user_id == user_id, GroupMember.group_id == group_id)
+        .first()
+    )
 
     if not group_member:
-        raise HTTPException(status_code=403, detail="You are not a member of this group")
+        raise HTTPException(
+            status_code=403, detail="You are not a member of this group"
+        )
 
     if group_member.role not in ["owner", "admin"]:
-        raise HTTPException(status_code=403, detail="You don't have permission to add item to this group")
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to add item to this group",
+        )
 
-    existing_item = db.query(Item).filter(Item.id == item_id, Item.group_id == group_id).first()
-    if existing_item :
-        raise HTTPException(status_code=403, detail="item already add to this group or item not found")
+    existing_item = (
+        db.query(Item).filter(Item.id == item_id, Item.group_id == group_id).first()
+    )
+    if existing_item:
+        raise HTTPException(
+            status_code=403, detail="item already add to this group or item not found"
+        )
 
     item_db = db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
 
     if not item_db:
         raise HTTPException(status_code=404, detail="item not found")
-    
-    item_db.group_id = group_id
 
+    item_db.group_id = group_id
 
     db.commit()
     db.refresh(item_db)
     return item_db
 
-#ลบ item ออกจาก group (ร้านของตัวเอง) by id
+
+# ลบ item ออกจาก group (ร้านของตัวเอง) by id
 @rounter.delete("/group/my/{group_id}/items/{item_id}")
 async def delete_item_in_group(
     group_id: int,
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
-    
-    #check ว่ามี group_id นี้อยู่จริงไหม และมีสิทธิ์เป็นแก้ไข group นี้ไหม
+
+    # check ว่ามี group_id นี้อยู่จริงไหม และมีสิทธิ์เป็นแก้ไข group นี้ไหม
     user_role = (
         db.query(Group)
         .join(GroupMember, Group.id == GroupMember.group_id)
         .filter(
             Group.id == group_id,
             GroupMember.user_id == current_user["id"],  # ต้องเป็น member ของ group
-            GroupMember.role.in_(["owner", "admin"])
+            GroupMember.role.in_(["owner", "admin"]),
         )
         .first()
     )
 
     if not user_role:
-        raise HTTPException(status_code=404, detail="Group not found or you're not the owner")
-    
-    #check ว่า item นี้อยู่ใน group ที่แก้ไขไหม
+        raise HTTPException(
+            status_code=404, detail="Group not found or you're not the owner"
+        )
 
-    db_item = db.query(Item).filter(
-        Item.group_id == group_id, 
-        Item.id == item_id,
-    ).first()
+    # check ว่า item นี้อยู่ใน group ที่แก้ไขไหม
+
+    db_item = (
+        db.query(Item)
+        .filter(
+            Item.group_id == group_id,
+            Item.id == item_id,
+        )
+        .first()
+    )
 
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     db_item.group_id = None
     db.commit()
     db.refresh(db_item)

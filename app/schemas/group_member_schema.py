@@ -26,6 +26,13 @@ class GroupMemberCreate(GroupMemberBase):
     """Schema for creating a new group member."""
 
 
+class GroupMemberAdd(BaseModel):
+    """Schema for adding a member to a group (without group_id in body)."""
+
+    user_id: int = Field(..., gt=0)
+    role: GroupMemberRole = GroupMemberRole.ADMIN
+
+
 class GroupMemberResponse(GroupMemberBase):
     id: int
     created_at: datetime

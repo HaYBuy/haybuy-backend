@@ -10,60 +10,7 @@ from decimal import Decimal
 from app.db.models.Users.User import User
 from app.db.models.items.item import Item
 from app.db.models.Categorys.main import Category
-
-
-@pytest.fixture
-def test_category(db_session: Session) -> Category:
-    """สร้าง test category"""
-    category = Category(name="Electronics", description="Electronic items")
-    db_session.add(category)
-    db_session.commit()
-    db_session.refresh(category)
-    return category
-
-
-@pytest.fixture
-def test_item(db_session: Session, test_user: User, test_category: Category) -> Item:
-    """สร้าง test item"""
-    item = Item(
-        name="Test Item",
-        description="Test item description",
-        price=Decimal("99.99"),
-        quantity=10,
-        status="available",
-        owner_id=test_user.id,
-        category_id=test_category.id,
-    )
-    db_session.add(item)
-    db_session.commit()
-    db_session.refresh(item)
-    return item
-
-
-@pytest.fixture
-def multiple_test_items(
-    db_session: Session, test_user: User, test_category: Category
-) -> list[Item]:
-    """สร้าง test items หลายรายการ"""
-    items = []
-    for i in range(1, 6):
-        item = Item(
-            name=f"Test Item {i}",
-            description=f"Description for item {i}",
-            price=Decimal(f"{i * 10}.99"),
-            quantity=i * 5,
-            status="available",
-            owner_id=test_user.id,
-            category_id=test_category.id,
-        )
-        db_session.add(item)
-        items.append(item)
-
-    db_session.commit()
-    for item in items:
-        db_session.refresh(item)
-
-    return items
+from app.schemas.item_schema import ItemStatus
 
 
 class TestListItems:

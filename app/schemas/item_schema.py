@@ -1,6 +1,7 @@
 """Item schema definitions."""
 
 from pydantic import BaseModel, Field, condecimal
+from decimal import Decimal
 from datetime import datetime
 from typing import Optional
 from enum import Enum
@@ -18,10 +19,12 @@ class ItemStatus(str, Enum):
 class ItemBase(BaseModel):
     """Base item model with common fields."""
 
-    name: str
+    name: str = Field(..., min_length=1)
     description: Optional[str] = None
-    price: condecimal(max_digits=10, decimal_places=2)
-    quantity: int
+    price: Decimal = Field(
+        ..., ge=0, max_digits=10, decimal_places=2
+    )  # ge=0 means greater than or equal to 0
+    quantity: int = Field(..., ge=0)  # quantity must be >= 0
     status: ItemStatus = ItemStatus.AVAILABLE
     image_url: Optional[str] = None
     search_text: Optional[str] = None
@@ -30,6 +33,12 @@ class ItemBase(BaseModel):
 
 class ItemCreate(ItemBase):
     """Schema for creating a new item."""
+
+
+class ItemStatusUpdate(BaseModel):
+    """Schema for updating item status only."""
+
+    status: ItemStatus
 
 
 class ItemResponse(ItemBase):

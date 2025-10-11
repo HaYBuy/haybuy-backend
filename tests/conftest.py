@@ -5,6 +5,13 @@ Pytest configuration and shared fixtures for HaYBuy Backend tests
 import os
 import pytest
 from typing import Generator
+from dotenv import load_dotenv
+from pathlib import Path
+
+# โหลด .env.test ก่อนที่จะ import app เพื่อให้ตั้งค่า environment variables ก่อน
+test_env_path = Path(__file__).parent.parent / ".env.test"
+load_dotenv(dotenv_path=test_env_path, override=True)
+
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -148,3 +155,66 @@ def multiple_test_users(db_session: Session) -> list[User]:
         db_session.refresh(user)
 
     return users
+
+
+@pytest.fixture
+def test_category(db_session: Session):
+    """
+    สร้าง test category สำหรับใช้ในหลาย test files
+    """
+    from app.db.models.Categorys.main import Category
+
+    category = Category(name="Electronics", slug="electronics")
+    db_session.add(category)
+    db_session.commit()
+    db_session.refresh(category)
+    return category
+
+
+@pytest.fixture
+def test_item(db_session: Session, test_user: User, test_category):
+    """
+    สร้าง test item สำหรับใช้ในหลาย test files
+    """
+    from app.db.models.items.item import Item
+
+    item = Item(
+        name="Test Item",
+        description="Test item description",
+        price=100.00,
+        quantity=10,
+        status="available",
+        owner_id=test_user.id,
+        category_id=test_category.id,
+    )
+    db_session.add(item)
+    db_session.commit()
+    db_session.refresh(item)
+    return item
+
+
+@pytest.fixture
+def multiple_test_items(db_session: Session, test_user: User, test_category):
+    """สร้าง test items หลายรายการ"""
+    from app.db.models.items.item import Item
+    from decimal import Decimal
+
+    items = []
+    for i in range(1, 6):
+        item = Item(
+            name=f"Test Item {i}",
+            description=f"Description for item {i}",
+            price=Decimal(f"{i * 10}.99"),
+            quantity=i * 5,
+            status="available",
+            owner_id=test_user.id,
+            category_id=test_category.id,
+        )
+        db_session.add(item)
+        items.append(item)
+
+    db_session.commit()
+    for item in items:
+        db_session.refresh(item)
+
+    return items

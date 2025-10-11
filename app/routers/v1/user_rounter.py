@@ -56,7 +56,7 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
 async def update_user(
     user: UserCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Update current user's information.
@@ -72,7 +72,7 @@ async def update_user(
     Raises:
         HTTPException: If user not found
     """
-    db_user = db.query(User).filter(User.id == current_user.id).first()
+    db_user = db.query(User).filter(User.id == current_user["id"]).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -89,10 +89,10 @@ async def update_user(
 
 @rounter.delete("/me")
 async def delete_user(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)
 ):
     """Soft delete current user and their profile."""
-    user_db = db.query(User).filter(User.id == current_user.id).first()
+    user_db = db.query(User).filter(User.id == current_user["id"]).first()
 
     if not user_db:
         raise HTTPException(
@@ -109,7 +109,7 @@ async def delete_user(
 
     # Soft delete user profile
     user_profile_db = (
-        db.query(UserProfile).filter(UserProfile.user_id == current_user.id).first()
+        db.query(UserProfile).filter(UserProfile.user_id == current_user["id"]).first()
     )
 
     if user_profile_db:

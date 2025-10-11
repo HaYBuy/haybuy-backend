@@ -185,7 +185,7 @@ EOF
                           -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
                           -Dsonar.sources=. \
                           -Dsonar.host.url=${SONAR_HOST_URL} \
-                          -Dsonar.login=${SONAR_TOKEN} \
+                          -Dsonar.token=${SONAR_TOKEN} \
                           -Dsonar.python.version=3.13 \
                           -Dsonar.sourceEncoding=UTF-8 \
                           -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/tests/**,**/.pytest_cache/**,**/htmlcov/**,**/*.pyc \

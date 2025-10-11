@@ -136,19 +136,18 @@ class TestCreateTransaction:
         self, authenticated_client: TestClient, test_seller_item: Item
     ):
         """
-        Test: สร้าง transaction กับ seller ที่ไม่มีในระบบ
-        Expected: ได้รับ status 404
+        Test: สร้าง transaction กับ item ที่มี (seller มาจาก item owner)
+        Expected: ได้รับ status 200 (seller_id ไม่ใช้แล้ว มาจาก item.owner_id)
         """
         transaction_data = {
             "item_id": test_seller_item.id,
-            "seller_id": 99999,
             "amount": 1,
         }
 
         response = authenticated_client.post("/v1/transaction/", json=transaction_data)
 
-        assert response.status_code == 404
-        assert "seller not found" in response.json()["detail"]
+        assert response.status_code == 200
+        assert response.json()["seller_id"] == test_seller_item.owner_id
 
     def test_create_transaction_with_own_item(
         self, authenticated_client: TestClient, test_item: Item, test_user: User

@@ -26,6 +26,13 @@ class WishItemCreate(WishItemBase):
     """Schema for creating a new wish item."""
 
 
+class WishItemAdd(BaseModel):
+    """Schema for adding item to wish list (without user_id in body)."""
+
+    item_id: int = Field(..., gt=0)
+    privacy: str = WishPrivacy.PRIVATE.value
+
+
 class WishItemResponse(WishItemBase):
     id: int
     created_at: datetime
