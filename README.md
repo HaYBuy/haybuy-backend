@@ -185,9 +185,64 @@ Database: haybuy_db
 
 ---
 
-## 🧪 Running Tests (Optional)
+## 🧪 Running Tests
 
-If `pytest` is configured inside the image:
+### Quick Start
+
+Run all tests with coverage:
+
+**Windows (PowerShell):**
+
+```powershell
+.\run_tests.ps1
+```
+
+**Linux/Mac:**
+
+```bash
+chmod +x run_tests.sh
+./run_tests.sh
+```
+
+### Manual Testing
+
+**Install test dependencies:**
+
+```bash
+pip install -e ".[dev]"
+# or
+pip install pytest pytest-asyncio pytest-cov httpx faker
+```
+
+**Run all tests:**
+
+```bash
+pytest
+```
+
+**Run with coverage:**
+
+```bash
+pytest --cov=app --cov-report=html
+```
+
+**Run specific test file:**
+
+```bash
+pytest tests/test_auth.py
+pytest tests/test_users.py
+pytest tests/test_items.py
+```
+
+**Run specific test:**
+
+```bash
+pytest tests/test_auth.py::TestAuthToken::test_login_with_valid_credentials
+```
+
+### Docker Testing
+
+If running in Docker:
 
 ```bash
 docker compose exec api pytest -v
@@ -198,6 +253,16 @@ To view coverage:
 ```bash
 docker compose exec api pytest --cov=app --cov-report=term-missing
 ```
+
+### Test Coverage
+
+View HTML coverage report after running tests:
+
+```
+htmlcov/index.html
+```
+
+**📚 More information:** See [tests/README.md](tests/README.md) for detailed testing documentation.
 
 ---
 
