@@ -10,6 +10,15 @@ pipeline {
     options { timestamps() }
 
 
+        stage('Pre-clean git refs') {
+  steps {
+    sh '''
+      set -eux
+      git update-ref -d refs/remotes/origin/dev || true
+      git remote prune origin || true
+    '''
+  }
+}
         stages {
             stage('Checkout') {
                 steps {
