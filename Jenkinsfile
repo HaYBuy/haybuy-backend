@@ -104,7 +104,7 @@ pipeline {
         
         stage('Deploy to Staging') {
             when {
-                branch 'Dev'
+                branch 'feat/setup-jenkinsfile'
             }
             steps {
                 sh '''
