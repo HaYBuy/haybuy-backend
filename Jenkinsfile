@@ -64,19 +64,20 @@ pipeline {
         }
 
         stage('Run Tests & Coverage') {
-            steps {
-                sh '''
-                  # กันปัญหา import app ไม่ได้
-                  export PYTHONPATH="$WORKSPACE:${PYTHONPATH}"
-                  fastapi-env/bin/pytest --maxfail=1 --disable-warnings -q --cov=app --cov-report=xml
-                '''
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: '**/junit*.xml'
-                }
-            }
-        }
+  environment {
+    DATABASE_URL = 'sqlite:///./haybuy_test.db'
+    // # หรือใช้ SQLite ไม่ต้องมี service: 'sqlite:///./haybuy_test.db'
+    // withCredentials สามารถประกบเป็น URL ได้ (ดูตัวอย่างด้านล่าง)
+  }
+  steps {
+    sh '''
+      set -eux
+      export PYTHONPATH="$WORKSPACE:${PYTHONPATH}"
+      . fastapi-env/bin/activate
+      pytest --maxfail=1 --disable-warnings -q --cov=app --cov-report=xml --junitxml=junit-report.xml
+    '''
+  }
+}
 
         stage('SonarQube Analysis') {
             steps {
