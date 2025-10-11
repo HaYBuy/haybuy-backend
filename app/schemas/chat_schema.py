@@ -9,12 +9,12 @@ class ChatBase(BaseModel):
     pass
 
 class ChatCreate(ChatBase):
-    pass
+    participant_id: int
 
 class ChatResponse(ChatBase):
     id: int
-    createAt: datetime
-    updateAt: datetime
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

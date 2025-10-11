@@ -6,16 +6,15 @@ from typing import List
 
 class ChatMessageBase(BaseModel):
     chat_id : int
-    sender_id: int
-    text: str
-    image_url: str
+    text: Optional[str]
+    image_url: Optional[str]
 
 class ChatMessageCreate(ChatMessageBase):
     pass
 
 class ChatMessageResponse(ChatMessageBase):
     id: int
-    sendAt: datetime
+    send_at: datetime
 
     class Config:
         from_attributes = True

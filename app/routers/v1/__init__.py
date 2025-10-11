@@ -12,6 +12,7 @@ from . import (
     auth_rounter,
     user_profile_rounter,
     transaction_rounter,
+    chat_router,
 )
 
 router = APIRouter(prefix="/v1")
@@ -26,3 +27,4 @@ router.include_router(category_rounter.rounter)
 router.include_router(wish_item_rounter.rounter)
 router.include_router(user_profile_rounter.rounter)
 router.include_router(transaction_rounter.rounter)
+router.include_router(chat_router.router)
