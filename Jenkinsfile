@@ -13,7 +13,7 @@ pipeline {
         stages {
             stage('Checkout') {
                 steps {
-                    git branch: '*/feat/setup-jenkinsfile', url: 'https://github.com/HaYBuy/haybuy-backend.git'
+                    git branch: 'origin/feat/setup-jenkinsfile', url: 'https://github.com/HaYBuy/haybuy-backend.git'
                 }
             }
 
