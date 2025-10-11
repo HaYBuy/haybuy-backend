@@ -1,3 +1,4 @@
+"""User management router."""
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 
@@ -8,70 +9,111 @@ from app.core.security import get_current_user
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-import bcrypt
-
-from dotenv import load_dotenv
-
-load_dotenv()
+from app.routers.v1.auth_rounter import hash_password
 
 rounter = APIRouter(prefix="/user", tags=["user"])
 
 @rounter.get("/", response_model=list[UserResponse])
 async def get_user(db: Session = Depends(get_db)):
+    """
+    Get all active users.
+    
+    Args:
+        db: Database session
+        
+    Returns:
+        List of user objects
+    """
     users = db.query(User).filter(User.deleted_at == None).all()
     return users
 
+
 @rounter.get("/{user_id}", response_model=UserResponse)
 async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    """
+    Get a specific user by ID.
+    
+    Args:
+        user_id: User ID to retrieve
+        db: Database session
+        
+    Returns:
+        User object
+        
+    Raises:
+        HTTPException: If user not found
+    """
     user_db = db.query(User).filter(user_id == User.id).first()
     if not user_db:
-        raise HTTPException(status_code=400, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found")
     
     return user_db
 
 @rounter.put("/me", response_model=UserResponse)
-async def update_user(user: UserCreate, db: Session = Depends(get_db), current_user : dict = Depends(get_current_user)):
-    db_user = db.query(User).filter(User.username == current_user["username"]).first()
-    if not db_user :
-        raise HTTPException(status_code=404 , detail="Not found")
+async def update_user(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update current user's information.
     
-    hashed_pw = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
+    Args:
+        user: User update data
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        Updated user object
+        
+    Raises:
+        HTTPException: If user not found
+    """
+    db_user = db.query(User).filter(User.id == current_user.id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update fields
     db_user.full_name = user.full_name
-    db_user.password = hashed_pw.decode("utf-8") 
-    db_user.username = db_user.username
-    db_user.email = db_user.email
+    db_user.password = hash_password(user.password)
+    db_user.email = user.email
+    db_user.updated_at = datetime.now()
 
     db.commit()
     db.refresh(db_user)
     return db_user
 
-@rounter.delete("/me",)
+@rounter.delete("/me")
 async def delete_user(
-    db: Session = Depends(get_db), 
-    current_user : dict = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    user_db = db.query(User).filter(User.id == current_user["id"]).first()
+    """Soft delete current user and their profile."""
+    user_db = db.query(User).filter(User.id == current_user.id).first()
 
-    if not user_db :
-        raise HTTPException(status_code=404, detail="User not found or Not have permission")
+    if not user_db:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found or insufficient permissions"
+        )
     
+    # Soft delete user
     user_db.is_active = False
-    user_db.updated_at=datetime.now()
-    user_db.deleted_at=datetime.now()
-    user_db.last_login=datetime.now()
+    user_db.updated_at = datetime.now()
+    user_db.deleted_at = datetime.now()
 
     db.commit()
     db.refresh(user_db)
 
-    user_profile_db = db.query(UserProfile).filter(UserProfile.user_id == current_user["id"]).first()
+    # Soft delete user profile
+    user_profile_db = db.query(UserProfile).filter(
+        UserProfile.user_id == current_user.id
+    ).first()
 
-    if not user_profile_db:
-        raise HTTPException(status_code=404, detail="Profile not found or Not have permission")
-    
-    user_profile_db.deleted_at = datetime.now()
-    user_profile_db.updated_at = datetime.now()
+    if user_profile_db:
+        user_profile_db.deleted_at = datetime.now()
+        user_profile_db.updated_at = datetime.now()
+        db.commit()
+        db.refresh(user_profile_db)
 
-    db.commit()
-    db.refresh(user_profile_db)
-
-    return {"detail":" User and User Profile delete success "}
+    return {"detail": "User and user profile deleted successfully"}

@@ -1,26 +1,32 @@
+"""Item schema definitions."""
 from pydantic import BaseModel, Field, condecimal
 from datetime import datetime
 from typing import Optional
 from enum import Enum
 
+
 class ItemStatus(str, Enum):
+    """Enumeration of possible item statuses."""
     AVAILABLE = "available"
     RESERVED = "reserved"
     SOLD = "sold"
     HIDDEN = "hidden"
 
+
 class ItemBase(BaseModel):
+    """Base item model with common fields."""
     name: str
     description: Optional[str] = None
     price: condecimal(max_digits=10, decimal_places=2)
     quantity: int
     status: ItemStatus = ItemStatus.AVAILABLE
     image_url: Optional[str] = None
-    search_text : Optional[str] = None
-    category_id: int = Field(..., gt=0 )
+    search_text: Optional[str] = None
+    category_id: int = Field(..., gt=0)
+
 
 class ItemCreate(ItemBase):
-    pass
+    """Schema for creating a new item."""
 
 class ItemResponse(ItemBase):
     id: int

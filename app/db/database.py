@@ -1,3 +1,4 @@
+"""Database configuration and session management."""
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 import os
@@ -23,11 +24,17 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class Base(DeclarativeBase):
-    pass
+    """Base class for all database models."""
 
 
 # Dependency สำหรับ FastAPI
 def get_db():
+    """
+    Dependency function to get database session.
+    
+    Yields:
+        Database session that will be automatically closed after use
+    """
     db = SessionLocal()
     try:
         yield db

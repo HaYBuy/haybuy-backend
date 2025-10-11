@@ -1,23 +1,28 @@
+"""Group schema definitions."""
 from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from typing import List
 
+
 class GroupRole(str, Enum):
+    """Enumeration of possible group member roles."""
     OWNER = "owner"
     ADMIN = "admin"
     MEMBER = "member"
 
 
 class GroupBase(BaseModel):
+    """Base group model with common fields."""
     name: str
     description: Optional[str] = None
     image_url: Optional[str] = None
 
+
 class GroupCreate(GroupBase):
-    owner_id: int = Field(..., gt=0) 
-    pass
+    """Schema for creating a new group."""
+    owner_id: int = Field(..., gt=0)
 
 class GroupResponse(GroupBase):
     id: int

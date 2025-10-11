@@ -1,13 +1,23 @@
-from fastapi import APIRouter
+"""Health check endpoint for monitoring and CI/CD."""
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import text
-from database import engine
+from sqlalchemy.exc import SQLAlchemyError
+from app.db.database import engine
 
 router = APIRouter()
 
 
 @router.get("/health")
 async def health_check():
-    """Health check endpoint for CI/CD and monitoring"""
+    """
+    Health check endpoint for CI/CD and monitoring.
+    
+    Returns:
+        Dictionary with service status and database connectivity
+        
+    Raises:
+        HTTPException: If critical services are unavailable
+    """
     try:
         # Check database connection
         with engine.connect() as conn:
@@ -18,5 +28,15 @@ async def health_check():
             "database": "connected",
             "service": "haybuy-backend",
         }
-    except Exception as e:
-        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
+    except SQLAlchemyError as db_error:
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": f"Database error: {str(db_error)}",
+        }
+    except Exception as general_error:
+        return {
+            "status": "unhealthy",
+            "database": "unknown",
+            "error": f"Unexpected error: {str(general_error)}",
+        }
