@@ -24,19 +24,23 @@ pipeline {
         stage('Install System Dependencies') {
             steps {
                 sh '''
+                    set -e
                     echo "=== Installing system dependencies ==="
                     apt-get update
-                    apt-get install -y curl gnupg lsb-release
+                    apt-get install -y curl gnupg lsb-release ca-certificates
                     
                     # Install Docker CLI
-                    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-                    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                    install -m 0755 -d /etc/apt/keyrings
+                    curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+                    chmod a+r /etc/apt/keyrings/docker.asc
+                    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
                     apt-get update
                     apt-get install -y docker-ce-cli
                     
                     # Install Docker Compose
-                    curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                    curl -SL "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
                     chmod +x /usr/local/bin/docker-compose
+                    ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
                     
                     echo "=== Verify installations ==="
                     python3 --version
@@ -49,15 +53,17 @@ pipeline {
         stage('Setup Python Environment') {
             steps {
                 sh '''
+                    set -e
                     echo "=== Setting up Python virtual environment ==="
                     python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                    pip install pytest pytest-cov pylint
+                    
+                    echo "=== Installing Python packages ==="
+                    venv/bin/pip install --upgrade pip
+                    venv/bin/pip install -r requirements.txt
+                    venv/bin/pip install pytest pytest-cov pylint
                     
                     echo "=== Python packages installed ==="
-                    pip list
+                    venv/bin/pip list
                 '''
             }
         }
@@ -65,10 +71,11 @@ pipeline {
         stage('Linting') {
             steps {
                 sh '''
-                    . venv/bin/activate
+                    set -e
                     echo "=== Running pylint ==="
-                    pylint **/*.py --exit-zero --output-format=text --reports=y > pylint-report.txt || true
-                    cat pylint-report.txt
+                    venv/bin/pylint **/*.py --exit-zero --output-format=text --reports=y > pylint-report.txt || true
+                    echo "=== Pylint report ==="
+                    head -n 50 pylint-report.txt || true
                 '''
             }
         }
@@ -76,16 +83,18 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '''
-                    . venv/bin/activate
+                    set -e
                     echo "=== Starting test database ==="
                     docker-compose up -d db
+                    
+                    echo "=== Waiting for database ==="
                     sleep 15
                     
                     echo "=== Database status ==="
                     docker-compose ps
                     
                     echo "=== Running tests ==="
-                    pytest --cov=. --cov-report=xml --cov-report=html --junitxml=test-results.xml || true
+                    venv/bin/pytest --cov=. --cov-report=xml --cov-report=html --junitxml=test-results.xml || true
                 '''
             }
             post {
@@ -106,6 +115,7 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 sh '''
+                    set -e
                     echo "=== Building Docker images ==="
                     docker-compose build
                 '''
@@ -122,6 +132,7 @@ pipeline {
             }
             steps {
                 sh '''
+                    set -e
                     echo "=== Deploying to staging ==="
                     docker-compose down || true
                     docker-compose up -d
@@ -133,7 +144,15 @@ pipeline {
                     docker-compose ps
                     
                     echo "=== Health check ==="
-                    curl -f http://localhost:8000/health || echo "Health check endpoint not available yet"
+                    for i in 1 2 3 4 5; do
+                        if curl -f http://localhost:8000/health; then
+                            echo "✅ Health check passed"
+                            break
+                        else
+                            echo "⏳ Waiting for service... attempt $i/5"
+                            sleep 5
+                        fi
+                    done
                 '''
             }
         }
