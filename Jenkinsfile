@@ -175,27 +175,31 @@ EOF
         
         stage('SonarQube Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'sonarqube-token-backend', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        set -e
-                        echo "=== Running SonarQube Analysis ==="
-                        
-                        sonar-scanner \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                          -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
-                          -Dsonar.sources=. \
-                          -Dsonar.host.url=${SONAR_HOST_URL} \
-                          -Dsonar.token=${SONAR_TOKEN} \
-                          -Dsonar.python.version=3.13 \
-                          -Dsonar.sourceEncoding=UTF-8 \
-                          -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/tests/**,**/.pytest_cache/**,**/htmlcov/**,**/*.pyc \
-                          -Dsonar.python.coverage.reportPaths=coverage.xml \
-                          -Dsonar.python.xunit.reportPath=test-results.xml \
-                          -Dsonar.python.pylint.reportPaths=pylint-report.txt \
-                          -Dsonar.branch.name=${BRANCH_NAME}
-                        
-                        echo "✅ SonarQube Analysis completed"
-                    '''
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        withCredentials([string(credentialsId: 'sonarqube-token-backend', variable: 'SONAR_TOKEN')]) {
+                            sh '''
+                                set -e
+                                echo "=== Running SonarQube Analysis ==="
+                                
+                                sonar-scanner \
+                                  -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                                  -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
+                                  -Dsonar.sources=. \
+                                  -Dsonar.host.url=${SONAR_HOST_URL} \
+                                  -Dsonar.token=${SONAR_TOKEN} \
+                                  -Dsonar.python.version=3.13 \
+                                  -Dsonar.sourceEncoding=UTF-8 \
+                                  -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/tests/**,**/.pytest_cache/**,**/htmlcov/**,**/*.pyc \
+                                  -Dsonar.python.coverage.reportPaths=coverage.xml \
+                                  -Dsonar.python.xunit.reportPath=test-results.xml \
+                                  -Dsonar.python.pylint.reportPaths=pylint-report.txt \
+                                  -Dsonar.branch.name=${BRANCH_NAME}
+                                
+                                echo "✅ SonarQube Analysis completed"
+                            '''
+                        }
+                    }
                 }
             }
         }
@@ -206,10 +210,18 @@ EOF
                     script {
                         echo "=== Waiting for Quality Gate ==="
                         try {
-                            waitForQualityGate abortPipeline: false
-                            echo "✅ Quality Gate passed"
+                            def qg = waitForQualityGate()
+                            if (qg.status != 'OK') {
+                                echo "⚠️ Quality Gate status: ${qg.status}"
+                                // Don't fail the pipeline, just warn
+                                unstable(message: "Quality Gate failed: ${qg.status}")
+                            } else {
+                                echo "✅ Quality Gate passed"
+                            }
                         } catch (Exception e) {
-                            echo "⚠️ Quality Gate check skipped or failed: ${e.message}"
+                            echo "⚠️ Quality Gate check failed: ${e.message}"
+                            // Don't fail the pipeline
+                            unstable(message: "Quality Gate check failed: ${e.message}")
                         }
                     }
                 }
