@@ -13,19 +13,18 @@ from ...db.models.items.item import Item
 from app.schemas.item_schema import (
     ItemCreate,
     ItemResponse,
-    ItemStatus,
     ItemStatusUpdate,
 )
 from app.db.models.PriceHistorys.main import PriceHistory
-from app.schemas.price_history import PriceHistoryCreate, PriceHistoryResponse
+from app.schemas.price_history import PriceHistoryResponse
 
 from ...core.security import get_current_user
 
-rounter = APIRouter(prefix="/item", tags=["item"])
+router = APIRouter(prefix="/item", tags=["item"])
 
 
 # get item by search + filter + pagination
-@rounter.get("/", response_model=List[ItemResponse])
+@router.get("/", response_model=List[ItemResponse])
 async def list_items(
     search: Optional[str] = None,
     min_price: Optional[float] = None,
@@ -50,7 +49,7 @@ async def list_items(
     return items
 
 
-@rounter.get("/my/{item_id}/pricehistories", response_model=List[PriceHistoryResponse])
+@router.get("/my/{item_id}/pricehistories", response_model=List[PriceHistoryResponse])
 async def get_price_item_histories(
     item_id: int,
     skip: int = 0,
@@ -76,7 +75,7 @@ async def get_price_item_histories(
 
 
 # get item by id (detail page)
-@rounter.get("/{item_id}", response_model=ItemResponse)
+@router.get("/{item_id}", response_model=ItemResponse)
 async def get_item_by_id(item_id: int, db: Session = Depends(get_db)):
     db_item = db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
     if not db_item:
@@ -85,7 +84,7 @@ async def get_item_by_id(item_id: int, db: Session = Depends(get_db)):
     return ItemResponse.model_validate(db_item)
 
 
-@rounter.get("/user/{user_id}", response_model=List[ItemResponse])
+@router.get("/user/{user_id}", response_model=List[ItemResponse])
 async def get_items_by_user(
     user_id: int,
     skip: int = 0,
@@ -102,7 +101,7 @@ async def get_items_by_user(
     return items
 
 
-@rounter.post("/my", response_model=ItemResponse)
+@router.post("/my", response_model=ItemResponse)
 async def create_my_item(
     item: ItemCreate,
     db: Session = Depends(get_db),
@@ -145,7 +144,7 @@ async def create_my_item(
     return db_item
 
 
-@rounter.put("/my/{item_id}", response_model=ItemResponse)
+@router.put("/my/{item_id}", response_model=ItemResponse)
 async def update_my_item(
     item_id: int,
     item: ItemCreate,
@@ -196,7 +195,7 @@ async def update_my_item(
     return db_item
 
 
-@rounter.delete("/my/{item_id}")
+@router.delete("/my/{item_id}")
 async def delete_my_item(
     item_id: int,
     db: Session = Depends(get_db),
@@ -227,7 +226,7 @@ async def delete_my_item(
     return {"detail": "Item deleted"}
 
 
-@rounter.patch("/my/{item_id}/status", response_model=ItemResponse)
+@router.patch("/my/{item_id}/status", response_model=ItemResponse)
 async def change_item_status(
     item_id: int,
     data: ItemStatusUpdate,

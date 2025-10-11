@@ -9,7 +9,6 @@ from app.db.models.Chats.chat import Chat
 from app.db.models.Chats.chat_member import ChatMember
 from app.db.models.Chats.chat_message import ChatMessage
 from app.schemas.chat_schema import ChatCreate, ChatResponse
-from app.schemas.chat_member_schema import ChatMemberCreate, ChatMemberResponse
 from app.schemas.chat_message_schema import ChatMessageCreate, ChatMessageResponse
 
 router = APIRouter(prefix="/chats", tags=["Chats"])

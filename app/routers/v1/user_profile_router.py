@@ -1,25 +1,20 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional
-
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 from ...db.database import get_db
 
 from ...db.models.Users.UserProfile import UserProfile
 from ...schemas.user_profile_schema import (
-    UserProfileBase,
     UserProfileCreate,
     UserProfileResponse,
 )
 
 from ...core.security import get_current_user
 
-rounter = APIRouter(prefix="/profile", tags=["profile"])
+router = APIRouter(prefix="/profile", tags=["profile"])
 
 
-@rounter.get("/me", response_model=UserProfileResponse)
+@router.get("/me", response_model=UserProfileResponse)
 async def get_my_profile(
     db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)
 ):
@@ -35,7 +30,7 @@ async def get_my_profile(
     return profile_db
 
 
-@rounter.get("/{user_target_id}", response_model=UserProfileResponse)
+@router.get("/{user_target_id}", response_model=UserProfileResponse)
 async def get_target_profile(
     user_target_id: int,
     db: Session = Depends(get_db),
@@ -48,7 +43,7 @@ async def get_target_profile(
     return target_profile_db
 
 
-@rounter.put("/me/editprofile", response_model=UserProfileResponse)
+@router.put("/me/editprofile", response_model=UserProfileResponse)
 async def edit_my_profile(
     data: UserProfileCreate,
     db: Session = Depends(get_db),

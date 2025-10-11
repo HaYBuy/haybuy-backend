@@ -1,6 +1,5 @@
-from enum import Enum
-from fastapi import APIRouter, Depends, HTTPException, Response
-from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException
+from typing import List
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
@@ -21,10 +20,10 @@ from app.schemas.transaction_schema import (
 from ...core.security import get_current_user
 from app.db.models.Transactions.transaction_model import Transaction
 
-rounter = APIRouter(prefix="/transaction", tags=["transaction"])
+router = APIRouter(prefix="/transaction", tags=["transaction"])
 
 
-@rounter.post("/", response_model=TransactionResponse)
+@router.post("/", response_model=TransactionResponse)
 async def create_transaction(
     data: TransactionAdd,
     db: Session = Depends(get_db),
@@ -69,7 +68,7 @@ async def create_transaction(
     return new_transaction
 
 
-@rounter.patch("/buyer/acception/{transaction_id}", response_model=TransactionResponse)
+@router.patch("/buyer/acception/{transaction_id}", response_model=TransactionResponse)
 async def buyer_accept(
     transaction_id: int,
     accepted: TransactionAccepted,
@@ -86,7 +85,7 @@ async def buyer_accept(
     )
 
 
-@rounter.patch("/seller/acception/{transaction_id}", response_model=TransactionResponse)
+@router.patch("/seller/acception/{transaction_id}", response_model=TransactionResponse)
 async def seller_accept(
     transaction_id: int,
     accepted: TransactionAccepted,
@@ -103,7 +102,7 @@ async def seller_accept(
     )
 
 
-@rounter.patch(
+@router.patch(
     "/transaction/cancel/{transaction_id}", response_model=TransactionResponse
 )
 def cancel_transaction(
@@ -153,7 +152,7 @@ def cancel_transaction(
     return transaction
 
 
-@rounter.patch("/paid/{transaction_id}")
+@router.patch("/paid/{transaction_id}")
 async def paid_transaction(
     transaction_id: int,
     db: Session = Depends(get_db),
@@ -179,7 +178,7 @@ async def paid_transaction(
     return transaction
 
 
-@rounter.patch("/{transaction_id}", response_model=TransactionResponse)
+@router.patch("/{transaction_id}", response_model=TransactionResponse)
 async def change_transaction_detail(
     transaction_id: int,
     data: TransactionCreate,
@@ -219,7 +218,7 @@ async def change_transaction_detail(
     return existing_transaction
 
 
-@rounter.get("/my", response_model=List[TransactionResponse])
+@router.get("/my", response_model=List[TransactionResponse])
 async def get_my_transaction(
     db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)
 ):

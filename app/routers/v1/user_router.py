@@ -10,12 +10,12 @@ from app.core.security import get_current_user
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.routers.v1.auth_rounter import hash_password
+from app.routers.v1.auth_router import hash_password
 
-rounter = APIRouter(prefix="/user", tags=["user"])
+router = APIRouter(prefix="/user", tags=["user"])
 
 
-@rounter.get("/", response_model=list[UserResponse])
+@router.get("/", response_model=list[UserResponse])
 async def get_user(db: Session = Depends(get_db)):
     """
     Get all active users.
@@ -30,7 +30,7 @@ async def get_user(db: Session = Depends(get_db)):
     return users
 
 
-@rounter.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=UserResponse)
 async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     """
     Get a specific user by ID.
@@ -52,7 +52,7 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     return user_db
 
 
-@rounter.put("/me", response_model=UserResponse)
+@router.put("/me", response_model=UserResponse)
 async def update_user(
     user: UserCreate,
     db: Session = Depends(get_db),
@@ -87,7 +87,7 @@ async def update_user(
     return db_user
 
 
-@rounter.delete("/me")
+@router.delete("/me")
 async def delete_user(
     db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)
 ):

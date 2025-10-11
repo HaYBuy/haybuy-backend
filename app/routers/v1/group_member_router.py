@@ -1,7 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from typing import List, Optional
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from typing import List
 from sqlalchemy.orm import Session
 from ...db.database import get_db
 from ...db.models.Groups.group import Group
@@ -15,14 +13,14 @@ from ...schemas.group_member_schema import (
 )
 from ...core.security import get_current_user
 
-rounter = APIRouter(prefix="/group_member", tags=["group_member"])
+router = APIRouter(prefix="/group_member", tags=["group_member"])
 
 # Constants
 GROUP_NOT_FOUND_OR_NOT_OWNER = "Group not found or you're not the owner"
 
 
 # เพิ่ม member เข้า group (ร้านของตัวเอง) by group_id
-@rounter.post("/group/my/{group_id}/members", response_model=GroupMemberResponse)
+@router.post("/group/my/{group_id}/members", response_model=GroupMemberResponse)
 async def add_member_to_group(
     group_id: int,
     member: GroupMemberAdd,
@@ -66,7 +64,7 @@ async def add_member_to_group(
 
 
 # แก้ไข role member ใน group (ร้านของตัวเอง) by group_id และ user_id
-@rounter.put(
+@router.put(
     "/group/my/{group_id}/members/{user_id}", response_model=GroupMemberResponse
 )
 async def update_member_role_in_group(
@@ -115,7 +113,7 @@ async def update_member_role_in_group(
 
 
 # ลบ member ออกจาก group (ร้านของตัวเอง) by group_id และ user_id
-@rounter.delete("/group/my/{group_id}/members/{user_id}")
+@router.delete("/group/my/{group_id}/members/{user_id}")
 async def remove_member_from_group(
     group_id: int,
     user_id: int,
@@ -153,7 +151,7 @@ async def remove_member_from_group(
 
 
 # ดึง member ทั้งหมดใน group (ร้านของตัวเอง) by group_id
-@rounter.get("/group/my/{group_id}/members", response_model=List[GroupMemberResponse])
+@router.get("/group/my/{group_id}/members", response_model=List[GroupMemberResponse])
 async def get_members_in_group(
     group_id: int,
     db: Session = Depends(get_db),
@@ -173,7 +171,7 @@ async def get_members_in_group(
 
 
 # ดึง member ทั้งหมดใน group (ร้านของตัวเอง) by group_id
-@rounter.get("/group/{group_id}/members", response_model=List[GroupMemberResponse])
+@router.get("/group/{group_id}/members", response_model=List[GroupMemberResponse])
 async def get_members_in_group_public(group_id: int, db: Session = Depends(get_db)):
     # check ว่ามี group_id นี้อยู่จริงไหม
     db_group = (

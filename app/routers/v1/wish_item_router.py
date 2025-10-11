@@ -1,8 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional
-
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from typing import List
 
 from sqlalchemy.orm import Session
 
@@ -12,8 +9,6 @@ from ...db.database import get_db
 
 from ...db.models.items.wishItem import WishItem
 from ...schemas.wish_item_schema import (
-    WishItemBase,
-    WishItemCreate,
     WishItemAdd,
     WishItemResponse,
     WishPrivacy,
@@ -21,10 +16,10 @@ from ...schemas.wish_item_schema import (
 
 from ...core.security import get_current_user
 
-rounter = APIRouter(prefix="/wish-item", tags=["wish-item"])
+router = APIRouter(prefix="/wish-item", tags=["wish-item"])
 
 
-@rounter.post("/", response_model=WishItemResponse)
+@router.post("/", response_model=WishItemResponse)
 async def add_wish_item(
     wish: WishItemAdd,
     db: Session = Depends(get_db),
@@ -50,7 +45,7 @@ async def add_wish_item(
     return db_wish
 
 
-@rounter.delete("/my/{wish_id}")
+@router.delete("/my/{wish_id}")
 async def remove_wish_item(
     wish_id: int,
     db: Session = Depends(get_db),
@@ -69,7 +64,7 @@ async def remove_wish_item(
     return {"detail": "Wish item deleted"}
 
 
-@rounter.patch("/my/{wish_id}/privacy", response_model=WishItemResponse)
+@router.patch("/my/{wish_id}/privacy", response_model=WishItemResponse)
 async def set_privacy_wish_list(
     wish_id: int,
     db: Session = Depends(get_db),
@@ -93,7 +88,7 @@ async def set_privacy_wish_list(
     return wish
 
 
-@rounter.get("/my/items", response_model=List[ItemResponse])
+@router.get("/my/items", response_model=List[ItemResponse])
 async def get_my_wish_list(
     skip: int = 0,
     limit: int = 10,
@@ -112,7 +107,7 @@ async def get_my_wish_list(
     return items
 
 
-@rounter.get("/my", response_model=List[WishItemResponse])
+@router.get("/my", response_model=List[WishItemResponse])
 async def get_my_wish_list(
     skip: int = 0,
     limit: int = 10,
@@ -129,7 +124,7 @@ async def get_my_wish_list(
     return wish_list
 
 
-@rounter.get("/my/share/{target_id}", response_model=List[WishItemResponse])
+@router.get("/my/share/{target_id}", response_model=List[WishItemResponse])
 async def share_my_wish_List(
     target_id: int,
     skip: int = 0,

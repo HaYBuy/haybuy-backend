@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.db.database import get_db
 from app.db.models.Users.User import User
-from ...core.security import create_access_token, get_current_user
+from ...core.security import create_access_token
 from ...schemas.user_schema import UserCreate, UserResponse
 from app.db.models.Users.UserProfile import UserProfile
 from typing import Annotated
@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 # Security constants
 BCRYPT_SALT_ROUNDS = 12
 
-rounter = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 class LoginRequest(BaseModel):
@@ -60,7 +60,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     )
 
 
-@rounter.post("/token")
+@router.post("/token")
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db),
@@ -110,7 +110,7 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@rounter.post("/login")
+@router.post("/login")
 async def login(data: LoginRequest, db: Session = Depends(get_db)):
     """
     Alternative login endpoint with JSON body.
@@ -141,7 +141,7 @@ async def login(data: LoginRequest, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@rounter.post("/register", response_model=UserResponse)
+@router.post("/register", response_model=UserResponse)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user account.

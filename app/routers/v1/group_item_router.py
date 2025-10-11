@@ -1,23 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from typing import List, Optional
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from typing import List
 from sqlalchemy.orm import Session
 
 from app.db.models.Groups.groupMember import GroupMember
 from ...db.database import get_db
 from ...db.models.items.item import Item
 from ...db.models.Groups.group import Group
-from ..v1.group_rounter import rounter as group_rounter
-from ...schemas.item_schema import ItemCreate, ItemResponse, ItemStatus
+from ...schemas.item_schema import  ItemResponse
 from ...core.security import get_current_user
-from app.db.models.Groups.group_item import GroupItem
 
-rounter = APIRouter(prefix="/group_item", tags=["group_item"])
+router = APIRouter(prefix="/group_item", tags=["group_item"])
 
 
 # ดึง item by group id + pagination (หน้า shop)
-@rounter.get("/group/{group_id}/items", response_model=List[ItemResponse])
+@router.get("/group/{group_id}/items", response_model=List[ItemResponse])
 async def get_items_by_group(
     group_id: int, skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
 ):
@@ -33,7 +29,7 @@ async def get_items_by_group(
 
 
 # post item ใน group (ร้านของตัวเอง)
-@rounter.post("/group/my/{group_id}/items/{item_id}", response_model=ItemResponse)
+@router.post("/group/my/{group_id}/items/{item_id}", response_model=ItemResponse)
 async def create_item_in_group(
     group_id: int,
     item_id: int,
@@ -82,7 +78,7 @@ async def create_item_in_group(
 
 
 # ลบ item ออกจาก group (ร้านของตัวเอง) by id
-@rounter.delete("/group/my/{group_id}/items/{item_id}")
+@router.delete("/group/my/{group_id}/items/{item_id}")
 async def delete_item_in_group(
     group_id: int,
     item_id: int,

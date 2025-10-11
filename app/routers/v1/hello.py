@@ -2,9 +2,10 @@ from fastapi import APIRouter
 from datetime import datetime
 import pytz
 
-rounter = APIRouter(prefix="/hello", tags=["hello"])
+router = APIRouter(prefix="/hello", tags=["hello"])
 
-@rounter.get("/")
+
+@router.get("/")
 async def say_hello():
     thai_tz = pytz.timezone("Asia/Bangkok")
     now_thai = datetime.now(thai_tz)

@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models.Carts.cart import Cart
 from app.db.models.Carts.cart_item import CartItem
-from app.db.models.Users import User
 from app.db.models.items.item import Item
-from app.schemas.cart_schema import CartResponse, CartItemResponse, CartCreate
+from app.schemas.cart_schema import CartResponse, CartItemResponse
 from app.schemas.cart_item_response import CartItemCreate, CartItemResponse
 from ...core.security import get_current_user
 

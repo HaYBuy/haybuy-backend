@@ -177,16 +177,16 @@ haybuy-backend/
 │       ├── __init__.py
 │       └── v1/                   # API version 1
 │           ├── __init__.py
-│           ├── auth_rounter.py
-│           ├── user_rounter.py
-│           ├── user_profile_rounter.py
-│           ├── item_rounter.py
-│           ├── category_rounter.py
-│           ├── wish_item_rounter.py
-│           ├── group_rounter.py
-│           ├── group_member_rounter.py
-│           ├── group_item_rounter.py
-│           ├── transaction_rounter.py
+│           ├── auth_router.py
+│           ├── user_router.py
+│           ├── user_profile_router.py
+│           ├── item_router.py
+│           ├── category_router.py
+│           ├── wish_item_router.py
+│           ├── group_router.py
+│           ├── group_member_router.py
+│           ├── group_item_router.py
+│           ├── transaction_router.py
 │           └── hello.py
 │
 ├── docs/                         # Documentation
@@ -231,7 +231,7 @@ haybuy-backend/
 - Input validation (ร่วมกับ Pydantic)
 
 ```python
-# Example: app/routers/v1/item_rounter.py
+# Example: app/routers/v1/item_router.py
 @router.get("/items/{item_id}")
 async def get_item(item_id: int, db: Session = Depends(get_db)):
     # Handle request
