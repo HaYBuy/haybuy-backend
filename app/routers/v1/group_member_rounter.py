@@ -17,6 +17,9 @@ from ...core.security import get_current_user
 
 rounter = APIRouter(prefix="/group_member", tags=["group_member"])
 
+# Constants
+GROUP_NOT_FOUND_OR_NOT_OWNER = "Group not found or you're not the owner"
+
 
 # เพิ่ม member เข้า group (ร้านของตัวเอง) by group_id
 @rounter.post("/group/my/{group_id}/members", response_model=GroupMemberResponse)
@@ -33,9 +36,7 @@ async def add_member_to_group(
         .first()
     )
     if not db_group:
-        raise HTTPException(
-            status_code=404, detail="Group not found or you're not the owner"
-        )
+        raise HTTPException(status_code=404, detail=GROUP_NOT_FOUND_OR_NOT_OWNER)
 
     # check ว่า user ที่จะเพิ่มเข้า group มีอยู่จริงไหม
     db_user = db.query(User).filter(User.id == member.user_id).first()
@@ -80,9 +81,7 @@ async def update_member_role_in_group(
         .first()
     )
     if not db_group:
-        raise HTTPException(
-            status_code=404, detail="Group not found or you're not the owner"
-        )
+        raise HTTPException(status_code=404, detail=GROUP_NOT_FOUND_OR_NOT_OWNER)
 
     # check ว่า user ที่จะเพิ่มเข้า group มีอยู่จริงไหม
     db_user = db.query(User).filter(User.id == member.user_id).first()
@@ -130,9 +129,7 @@ async def remove_member_from_group(
         .first()
     )
     if not db_group:
-        raise HTTPException(
-            status_code=404, detail="Group not found or you're not the owner"
-        )
+        raise HTTPException(status_code=404, detail=GROUP_NOT_FOUND_OR_NOT_OWNER)
 
     # check ว่า user ที่จะลบออกจาก group มีอยู่จริงไหม
     db_user = db.query(User).filter(User.id == user_id).first()
@@ -169,9 +166,7 @@ async def get_members_in_group(
         .first()
     )
     if not db_group:
-        raise HTTPException(
-            status_code=404, detail="Group not found or you're not the owner"
-        )
+        raise HTTPException(status_code=404, detail=GROUP_NOT_FOUND_OR_NOT_OWNER)
 
     members = db.query(GroupMember).filter(GroupMember.group_id == group_id).all()
     return members
