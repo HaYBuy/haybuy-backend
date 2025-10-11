@@ -4,6 +4,12 @@ from ...database import Base
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
+
+
+from ..Chats.chat_message import ChatMessage 
+from ..Chats.chat_member import ChatMember 
+from ..Chats.chat import Chat
+
 def get_thai_time():
     return datetime.now(ZoneInfo("Asia/Bangkok"))
 
@@ -32,8 +38,8 @@ class User(Base):
     wishItem = relationship("WishItem", back_populates="wisher")
     profile = relationship("UserProfile", back_populates="user")
 
-    send_messages = relationship("chat_messages", back_populates="sender")
-    chat_members = relationship("chat_members", back_populates="user")
+    send_messages = relationship("ChatMessage", back_populates="sender")
+    chat_members = relationship("ChatMember", back_populates="user")
 
 
     transactions_sold = relationship("Transaction", foreign_keys="[Transaction.seller_id]", back_populates="seller")

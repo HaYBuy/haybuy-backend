@@ -11,7 +11,8 @@ def get_thai_time():
 
 class Chat(Base):
     __tablename__ = "chats"
-    
+
+    id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime(timezone=True), default=get_thai_time)
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)
 
