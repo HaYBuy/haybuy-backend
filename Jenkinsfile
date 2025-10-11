@@ -127,8 +127,8 @@ EOF
             steps {
                 sh '''
                     set -e
-                    echo "=== Running pylint ==="
-                    venv/bin/pylint **/*.py --exit-zero --output-format=text --reports=y > pylint-report.txt || true
+                    echo "=== Running pylint on app directory only ==="
+                    venv/bin/pylint app --exit-zero --output-format=text --reports=y > pylint-report.txt || true
                     echo "=== Pylint report (first 50 lines) ==="
                     head -n 50 pylint-report.txt || true
                 '''
@@ -205,7 +205,6 @@ EOF
                                   -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/.pytest_cache/**,**/htmlcov/**,**/*.pyc \
                                   -Dsonar.test.exclusions=**/tests/** \
                                   -Dsonar.python.coverage.reportPaths=coverage.xml \
-                                  -Dsonar.python.xunit.reportPath=test-results.xml \
                                   -Dsonar.python.pylint.reportPaths=pylint-report.txt \
                                   -Dsonar.branch.name=${BRANCH_NAME}
                                 
