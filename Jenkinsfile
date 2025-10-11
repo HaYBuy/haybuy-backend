@@ -82,7 +82,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('Sonarqube') {
                 sh """
-                    "${tool 'SonarScanner'}/bin/sonar-scanner" \
+                    "${tool 'Sonarqube'}/bin/sonar-scanner" \
                     -Dsonar.projectKey=sonarqube-haybuy \
                     -Dsonar.sources=app \
                     -Dsonar.tests=tests \
