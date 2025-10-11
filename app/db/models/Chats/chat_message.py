@@ -1,0 +1,24 @@
+from ...database import Base
+from sqlalchemy import Column, Integer, ForeignKey , String, DateTime
+from sqlalchemy.orm import relationship, mapped_column, Mapped
+from ....schemas.group_member_schema import GroupMemberBase
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from typing import Optional
+
+def get_thai_time():
+    return datetime.now(ZoneInfo("Asia/Bangkok"))
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    text = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    send_at = Column(DateTime(timezone=True), default=get_thai_time)
+
+    # ความสัมพันธ์
+    chat = relationship("Chat", back_populates="messages")
+    sender = relationship("User", back_populates="sent_messages") 
