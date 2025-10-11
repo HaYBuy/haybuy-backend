@@ -140,10 +140,10 @@ class TestGetItemById:
         Test: ดึงข้อมูล item ที่ถูก soft delete แล้ว
         Expected: ได้รับ status 404
         """
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         # ทำเครื่องหมาย item เป็นลบ
-        test_item.deleted_at = datetime.utcnow()
+        test_item.deleted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         response = client.get(f"/v1/item/{test_item.id}")

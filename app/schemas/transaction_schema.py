@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, condecimal
+from pydantic import BaseModel, Field, condecimal, ConfigDict
 from datetime import datetime
 from typing import Optional
 from enum import Enum
@@ -53,5 +53,4 @@ class TransactionResponse(TransactionBase):
     buyer_accept_at: Optional[datetime]
     seller_accept_at: Optional[datetime]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

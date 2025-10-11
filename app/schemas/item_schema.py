@@ -1,6 +1,6 @@
 """Item schema definitions."""
 
-from pydantic import BaseModel, Field, condecimal
+from pydantic import BaseModel, Field, condecimal, ConfigDict
 from decimal import Decimal
 from datetime import datetime
 from typing import Optional
@@ -49,5 +49,4 @@ class ItemResponse(ItemBase):
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

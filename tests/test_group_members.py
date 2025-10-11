@@ -650,10 +650,10 @@ class TestGetMembersInGroupPublic:
         Test: ดึง members จาก group ที่ถูกลบแล้ว
         Expected: ได้รับ status 404
         """
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         # ทำเครื่องหมาย group เป็นลบ
-        test_group.deleted_at = datetime.utcnow()
+        test_group.deleted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         response = client.get(f"/v1/group_member/group/{test_group.id}/members")

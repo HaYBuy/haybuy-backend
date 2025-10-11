@@ -192,10 +192,10 @@ class TestGetItemsByGroup:
         Test: ดึง items ต้องไม่แสดง items ที่ถูกลบ
         Expected: ไม่มี items ที่ถูกลบในผลลัพธ์
         """
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         # ทำเครื่องหมาย item เป็นลบ
-        test_group_item.deleted_at = datetime.utcnow()
+        test_group_item.deleted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         response = client.get(f"/v1/group_item/group/{test_group.id}/items")
@@ -459,10 +459,10 @@ class TestAddItemToGroup:
         Test: เพิ่ม item ที่ถูกลบแล้วเข้า group
         Expected: ได้รับ status 404
         """
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         # ทำเครื่องหมาย item เป็นลบ
-        test_item.deleted_at = datetime.utcnow()
+        test_item.deleted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         response = authenticated_client.post(

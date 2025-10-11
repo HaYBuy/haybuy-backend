@@ -52,10 +52,10 @@ class TestGetUsers:
         Test: ดึงข้อมูล users ต้องไม่แสดง users ที่ถูกลบ (deleted_at != None)
         Expected: ไม่มี users ที่ถูกลบในผลลัพธ์
         """
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         # ทำเครื่องหมาย user เป็นลบ
-        test_user.deleted_at = datetime.utcnow()
+        test_user.deleted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         response = client.get("/v1/user/")

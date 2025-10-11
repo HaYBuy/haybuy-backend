@@ -5,7 +5,7 @@ Unit tests for group endpoints
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db.models.Groups.group import Group
 from app.db.models.Groups.groupMember import GroupMember
@@ -107,7 +107,7 @@ class TestGetMyGroups:
         Expected: ไม่มี groups ที่ถูกลบในผลลัพธ์
         """
         # ทำเครื่องหมาย group เป็นลบ
-        test_group.deleted_at = datetime.utcnow()
+        test_group.deleted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         response = authenticated_client.get("/v1/group/my")
@@ -464,7 +464,7 @@ class TestGetGroupById:
         Expected: ได้รับ status 404
         """
         # ทำเครื่องหมาย group เป็นลบ
-        test_group.deleted_at = datetime.utcnow()
+        test_group.deleted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         response = client.get(f"/v1/group/{test_group.id}")
@@ -527,7 +527,7 @@ class TestGetAllGroups:
         Expected: ไม่มี groups ที่ถูกลบในผลลัพธ์
         """
         # ทำเครื่องหมาย group เป็นลบ
-        test_group.deleted_at = datetime.utcnow()
+        test_group.deleted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         response = client.get("/v1/group/")

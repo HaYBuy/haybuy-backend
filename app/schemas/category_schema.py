@@ -1,6 +1,6 @@
 """Category schema definitions."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Annotated
 from datetime import datetime
 from typing import List
@@ -32,13 +32,11 @@ class CategoryResponse(CategoryBase):
     updated_at: Optional[datetime]
     children: List["CategoryResponse"] = []  # recursive
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CategoryChainResponse(CategoryBase):
     id: int
     children: List["CategoryChainResponse"] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
