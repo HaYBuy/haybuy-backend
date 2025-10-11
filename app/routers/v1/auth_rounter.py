@@ -78,6 +78,22 @@ async def login_for_access_token(
     Raises:
         HTTPException: If credentials are invalid
     """
+    # Validate empty credentials
+    if not form_data.username or not form_data.password:
+        raise HTTPException(
+            status_code=422,
+            detail=[
+                {
+                    "loc": [
+                        "body",
+                        "username" if not form_data.username else "password",
+                    ],
+                    "msg": "field required",
+                    "type": "value_error.missing",
+                }
+            ],
+        )
+
     user_db = db.query(User).filter(User.username == form_data.username).first()
     if not user_db:
         raise HTTPException(status_code=400, detail="Invalid username or password")

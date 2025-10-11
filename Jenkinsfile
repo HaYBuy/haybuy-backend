@@ -11,7 +11,8 @@ pipeline {
         POSTGRES_PASSWORD = 'admin'
         POSTGRES_DB = 'haybuy_db_test'
         SECRET_KEY = 'test-secret-key-for-ci-cd'
-        ALGORITHM = 'HS256'
+        JWT_SECRET_KEY = 'test-secret-key-for-ci-cd'
+        JWT_ALGORITHM = 'HS256'
         ACCESS_TOKEN_EXPIRE_MINUTES = '30'
         ENVIRONMENT = 'test'
         
@@ -110,7 +111,8 @@ POSTGRES_DB=${POSTGRES_DB}
 DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
 RUNNING_IN_DOCKER=true
 SECRET_KEY=${SECRET_KEY}
-ALGORITHM=${ALGORITHM}
+JWT_SECRET_KEY=${JWT_SECRET_KEY}
+JWT_ALGORITHM=${JWT_ALGORITHM}
 ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
 ENVIRONMENT=${ENVIRONMENT}
 EOF
@@ -142,10 +144,15 @@ EOF
 DATABASE_URL=sqlite:///:memory:
 RUNNING_IN_DOCKER=false
 SECRET_KEY=${SECRET_KEY}
-ALGORITHM=${ALGORITHM}
+JWT_SECRET_KEY=${JWT_SECRET_KEY}
+JWT_ALGORITHM=${JWT_ALGORITHM}
 ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
 ENVIRONMENT=test
+DEBUG=True
 EOF
+                    
+                    echo "=== .env.test file created ==="
+                    cat .env.test
                     
                     echo "=== Running tests ==="
                     venv/bin/pytest tests/ \
