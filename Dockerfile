@@ -8,7 +8,14 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     libpq-dev \
     curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Update CA certificates
+RUN update-ca-certificates
+
+# Configure pip to trust PyPI hosts
+RUN pip config set global.trusted-host "pypi.org pypi.python.org files.pythonhosted.org"
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
