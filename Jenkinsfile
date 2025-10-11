@@ -7,10 +7,13 @@ pipeline {
     }
     
     environment {
-        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
         POSTGRES_USER = 'admin'
         POSTGRES_PASSWORD = 'admin'
         POSTGRES_DB = 'haybuy_db_test'
+        SECRET_KEY = 'test-secret-key-for-ci-cd'
+        ALGORITHM = 'HS256'
+        ACCESS_TOKEN_EXPIRE_MINUTES = '30'
+        ENVIRONMENT = 'test'
     }
     
     stages {
@@ -27,7 +30,15 @@ pipeline {
                     set -e
                     echo "=== Installing system dependencies ==="
                     apt-get update
-                    apt-get install -y curl gnupg lsb-release ca-certificates
+                    apt-get install -y \
+                        libpq-dev \
+                        gcc \
+                        g++ \
+                        make \
+                        curl \
+                        gnupg \
+                        lsb-release \
+                        ca-certificates
                     
                     # Install Docker CLI
                     install -m 0755 -d /etc/apt/keyrings
@@ -40,7 +51,6 @@ pipeline {
                     # Install Docker Compose
                     curl -SL "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
                     chmod +x /usr/local/bin/docker-compose
-                    ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
                     
                     echo "=== Verify installations ==="
                     python3 --version
@@ -68,13 +78,36 @@ pipeline {
             }
         }
         
+        stage('Create Environment File') {
+            steps {
+                sh '''
+                    set -e
+                    echo "=== Creating .env file ==="
+                    cat > .env << EOF
+POSTGRES_USER=${POSTGRES_USER}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+POSTGRES_DB=${POSTGRES_DB}
+DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+RUNNING_IN_DOCKER=true
+SECRET_KEY=${SECRET_KEY}
+ALGORITHM=${ALGORITHM}
+ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+ENVIRONMENT=${ENVIRONMENT}
+EOF
+                    
+                    echo "=== .env file created ==="
+                    cat .env
+                '''
+            }
+        }
+        
         stage('Linting') {
             steps {
                 sh '''
                     set -e
                     echo "=== Running pylint ==="
                     venv/bin/pylint **/*.py --exit-zero --output-format=text --reports=y > pylint-report.txt || true
-                    echo "=== Pylint report ==="
+                    echo "=== Pylint report (first 50 lines) ==="
                     head -n 50 pylint-report.txt || true
                 '''
             }
@@ -87,14 +120,23 @@ pipeline {
                     echo "=== Starting test database ==="
                     docker-compose up -d db
                     
-                    echo "=== Waiting for database ==="
-                    sleep 15
+                    echo "=== Waiting for database to be healthy ==="
+                    for i in 1 2 3 4 5 6; do
+                        if docker-compose ps db | grep -q "healthy"; then
+                            echo "✅ Database is healthy"
+                            break
+                        else
+                            echo "⏳ Waiting for database... attempt $i/6"
+                            sleep 5
+                        fi
+                    done
                     
                     echo "=== Database status ==="
                     docker-compose ps
+                    docker-compose logs db | tail -30
                     
                     echo "=== Running tests ==="
-                    venv/bin/pytest --cov=. --cov-report=xml --cov-report=html --junitxml=test-results.xml || true
+                    venv/bin/pytest --cov=. --cov-report=xml --cov-report=html --junitxml=test-results.xml -v || true
                 '''
             }
             post {
@@ -118,6 +160,9 @@ pipeline {
                     set -e
                     echo "=== Building Docker images ==="
                     docker-compose build
+                    
+                    echo "=== Docker images ==="
+                    docker images | grep haybuy || true
                 '''
             }
         }
@@ -138,18 +183,22 @@ pipeline {
                     docker-compose up -d
                     
                     echo "=== Waiting for services ==="
-                    sleep 20
+                    sleep 25
                     
                     echo "=== Services status ==="
                     docker-compose ps
                     
+                    echo "=== API logs ==="
+                    docker-compose logs api | tail -50
+                    
                     echo "=== Health check ==="
                     for i in 1 2 3 4 5; do
-                        if curl -f http://localhost:8000/health; then
+                        if curl -f http://localhost:8000/health 2>/dev/null; then
                             echo "✅ Health check passed"
+                            curl -s http://localhost:8000/health | jq . || cat
                             break
                         else
-                            echo "⏳ Waiting for service... attempt $i/5"
+                            echo "⏳ Waiting for API... attempt $i/5"
                             sleep 5
                         fi
                     done
@@ -162,8 +211,9 @@ pipeline {
         always {
             sh '''
                 echo "=== Cleanup ==="
-                docker-compose down || true
+                docker-compose down -v || true
                 docker system prune -f || true
+                rm -f .env
             '''
         }
         success {
@@ -171,7 +221,10 @@ pipeline {
         }
         failure {
             echo '❌ Pipeline failed!'
-            sh 'docker-compose logs || true'
+            sh '''
+                echo "=== Docker Compose Logs ==="
+                docker-compose logs || true
+            '''
         }
     }
 }
