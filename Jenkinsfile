@@ -10,7 +10,10 @@ pipeline {
     options { timestamps() }
 
 
-        stage('Pre-clean git refs') {
+        
+        stages {
+
+            stage('Pre-clean git refs') {
   steps {
     sh '''
       set -eux
@@ -19,7 +22,7 @@ pipeline {
     '''
   }
 }
-        stages {
+
             stage('Checkout') {
                 steps {
                     git branch: 'feat/setup-jenkinsfile', url: 'https://github.com/HaYBuy/haybuy-backend.git'
