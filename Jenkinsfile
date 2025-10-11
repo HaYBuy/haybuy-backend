@@ -175,7 +175,7 @@ EOF
         
         stage('SonarQube Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                withCredentials([string(credentialsId: 'sonarqube-token-backend', variable: 'SONAR_TOKEN')]) {
                     sh '''
                         set -e
                         echo "=== Running SonarQube Analysis ==="
