@@ -41,6 +41,8 @@ class User(Base):
     send_messages = relationship("ChatMessage", back_populates="sender")
     chat_members = relationship("ChatMember", back_populates="user")
 
+    carts = relationship("Cart", back_populates="user")
+
 
     transactions_sold = relationship("Transaction", foreign_keys="[Transaction.seller_id]", back_populates="seller")
     transactions_bought = relationship("Transaction", foreign_keys="[Transaction.buyer_id]", back_populates="buyer")
