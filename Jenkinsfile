@@ -1,153 +1,136 @@
 pipeline {
-    agent {
-        docker {
-        image 'python:3.13'
-        // รันเป็น root + เมานต์ docker.sock (ถ้าคุณยังต้องใช้ docker ภายหลัง)
-        args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
-        }
+    agent any
+    
+    environment {
+        DOCKER_COMPOSE_FILE = 'docker-compose.yml'
+        SONAR_HOST_URL = 'http://172.24.142.21:9000/'
+        SONAR_TOKEN = credentials('sqa_9c6995dd00973421f299fd6024ceb3dc40c4c4fc')
+        POSTGRES_USER = 'admin'
+        POSTGRES_PASSWORD = 'admin'
+        POSTGRES_DB = 'haybuy_db_test'
     }
-
-    options { timestamps() }
-
-
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                echo 'Code checked out successfully'
+            }
+        }
         
-        stages {
-
-            stage('Pre-clean git refs') {
-  steps {
-    sh '''
-      set -eux
-      git update-ref -d refs/remotes/origin/dev || true
-      git remote prune origin || true
-    '''
-  }
-}
-
-            stage('Checkout') {
-                steps {
-                    git branch: 'feat/setup-jenkinsfile', url: 'https://github.com/HaYBuy/haybuy-backend.git'
-                }
-            }
-
-            stage('Install Java 17 for Scanner') {
-                steps {
-                    sh '''
-                    set -eux
-                    apt-get update
-                    apt-get install -y openjdk-21-jre-headless
-                    java -version
-                    '''
-                }
-                }
-
-            stage('Install docker CLI') {
-                steps {
-                    sh '''
-                    set -eux
-                    apt-get update
-                    # บน Debian trixie มีแพ็กเกจ docker.io ให้ใช้
-                    apt-get install -y docker.io
-                    docker version
-                    '''
-                }
-            }
-
-        stage('Setup venv') {
+        stage('Setup Python Environment') {
             steps {
                 sh '''
-                  python3 -m venv fastapi-env
-                  . fastapi-env/bin/activate
-                  pip install --upgrade pip
-                  pip install -r requirements.txt
+                    python3.13 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                    pip install pytest pytest-cov pylint
                 '''
             }
         }
-
-        stage('Start test DB') {
-  steps {
-    sh '''
-      set -eux
-      docker rm -f pg-test || true
-      docker run -d --name pg-test \
-        -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=haybuy_test \
-        -p 5432:5432 postgres:15
-      for i in {1..30}; do
-        docker exec pg-test pg_isready -U postgres && break || sleep 2
-      done
-    '''
-  }
-}
-stage('Run Tests & Coverage') {
-  environment {
-    // ใช้ SQLite ชั่วคราวระหว่างเทส (หรือเปลี่ยนเป็น Postgres ตามที่ตั้งไว้)
-    DATABASE_URL = 'sqlite:///./haybuy_test.db'
-  }
-  steps {
-    sh '''
-      set -eux
-      export PYTHONPATH="${WORKSPACE}:${PYTHONPATH:-}"
-
-      . fastapi-env/bin/activate
-      python --version
-      which python
-      pip --version
-
-      pytest --maxfail=1 --disable-warnings -q \
-        --cov=app --cov-report=xml \
-        --junitxml=junit-report.xml
-    '''
-  }
-  post {
-    always {
-      junit allowEmptyResults: true, testResults: 'junit-report.xml'
-    }
-  }
-}
-
+        
+        stage('Linting') {
+            steps {
+                sh '''
+                    . venv/bin/activate
+                    pylint **/*.py --exit-zero --output-format=text --reports=y > pylint-report.txt || true
+                '''
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                sh '''
+                    . venv/bin/activate
+                    # Start test database
+                    docker-compose up -d db
+                    sleep 10
+                    
+                    # Run tests with coverage
+                    pytest --cov=. --cov-report=xml --cov-report=html --junitxml=test-results.xml || true
+                '''
+            }
+            post {
+                always {
+                    junit 'test-results.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'htmlcov',
+                        reportFiles: 'index.html',
+                        reportName: 'Coverage Report'
+                    ])
+                }
+            }
+        }
+        
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('Sonarqube') {
-                sh """
-                    "${tool 'Sonarqube'}/bin/sonar-scanner" \
-                    -Dsonar.projectKey=sonarqube-haybuy \
-                    -Dsonar.sources=app \
-                    -Dsonar.tests=tests \
-                    -Dsonar.python.coverage.reportPaths=coverage.xml
-                """
+                script {
+                    def scannerHome = tool 'SonarQube Scanner'
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=haybuy-backend \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_TOKEN} \
+                            -Dsonar.python.coverage.reportPaths=coverage.xml \
+                            -Dsonar.python.xunit.reportPath=test-results.xml \
+                            -Dsonar.python.pylint.reportPaths=pylint-report.txt
+                        """
+                    }
                 }
             }
         }
-
         
-        // (ถ้าตั้ง Webhook ระหว่าง SonarQube -> Jenkins แล้ว ค่อยเปิดสเตจนี้)
-        // stage('Quality Gate') {
-        //     steps {
-        //         timeout(time: 10, unit: 'MINUTES') {
-        //             waitForQualityGate abortPipeline: true
-        //         }
-        //     }
-        // }
-
-        stage('Build Docker Image') {
+        stage('Quality Gate') {
             steps {
-                sh 'docker build -t fastapi-app:latest .'
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
-
-        stage('Deploy Container') {
+        
+        stage('Build Docker Images') {
             steps {
                 sh '''
-                  # หยุด/ลบคอนเทนเนอร์เก่าถ้ามี เพื่อลดพอร์ตชน
-                  docker rm -f fastapi-app || true
-                  docker run -d --name fastapi-app -p 8000:8000 fastapi-app:latest
+                    docker-compose build
+                '''
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            when {
+                branch 'Dev'
+            }
+            steps {
+                sh '''
+                    docker-compose down
+                    docker-compose up -d
+                    
+                    # Wait for services to be ready
+                    sleep 15
+                    
+                    # Health check
+                    curl -f http://localhost:8000/health || exit 1
                 '''
             }
         }
     }
-
+    
     post {
         always {
-            echo "Pipeline finished"
+            sh 'docker-compose down || true'
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
