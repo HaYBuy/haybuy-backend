@@ -79,17 +79,28 @@ pipeline {
 }
 stage('Run Tests & Coverage') {
   environment {
-    DATABASE_URL = 'postgresql+psycopg2://postgres:postgres@localhost:5432/haybuy_test'
+    // ใช้ SQLite ชั่วคราวระหว่างเทส (หรือเปลี่ยนเป็น Postgres ตามที่ตั้งไว้)
+    DATABASE_URL = 'sqlite:///./haybuy_test.db'
   }
   steps {
     sh '''
       set -eux
       export PYTHONPATH="${WORKSPACE}:${PYTHONPATH:-}"
+
       . fastapi-env/bin/activate
+      python --version
+      which python
+      pip --version
+
       pytest --maxfail=1 --disable-warnings -q \
         --cov=app --cov-report=xml \
         --junitxml=junit-report.xml
     '''
+  }
+  post {
+    always {
+      junit allowEmptyResults: true, testResults: 'junit-report.xml'
+    }
   }
 }
 
