@@ -128,9 +128,7 @@ async def delete_group(
 @router.get("/{group_id}", response_model=GroupResponse)
 async def get_group_by_id(group_id: int, db: Session = Depends(get_db)):
     db_group = (
-        db.query(Group)
-        .filter(Group.id == group_id, Group.deleted_at.is_(None))
-        .first()
+        db.query(Group).filter(Group.id == group_id, Group.deleted_at.is_(None)).first()
     )
     if not db_group:
         raise HTTPException(status_code=404, detail="Group not found")

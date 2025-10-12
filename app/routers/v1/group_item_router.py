@@ -68,7 +68,9 @@ async def create_item_in_group(
             status_code=403, detail="item already add to this group or item not found"
         )
 
-    item_db = db.query(Item).filter(Item.id == item_id, Item.deleted_at.is_(None)).first()
+    item_db = (
+        db.query(Item).filter(Item.id == item_id, Item.deleted_at.is_(None)).first()
+    )
 
     if not item_db:
         raise HTTPException(status_code=404, detail="item not found")
