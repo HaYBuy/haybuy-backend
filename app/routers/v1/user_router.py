@@ -14,6 +14,9 @@ from app.schemas.user_schema import UserCreate, UserResponse
 
 router = APIRouter(prefix="/user", tags=["user"])
 
+# Constants
+USER_NOT_FOUND = "User not found"
+
 
 @router.get("/", response_model=list[UserResponse])
 async def get_user(db: Session = Depends(get_db)):
@@ -50,7 +53,7 @@ async def get_current_user_info(
     """
     user_db = db.query(User).filter(User.id == current_user["id"]).first()
     if not user_db:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=USER_NOT_FOUND)
 
     return user_db
 
@@ -72,7 +75,7 @@ async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     """
     user_db = db.query(User).filter(user_id == User.id).first()
     if not user_db:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=USER_NOT_FOUND)
 
     return user_db
 
@@ -99,7 +102,7 @@ async def update_user(
     """
     db_user = db.query(User).filter(User.id == current_user["id"]).first()
     if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=USER_NOT_FOUND)
 
     # Update fields
     db_user.full_name = user.full_name
