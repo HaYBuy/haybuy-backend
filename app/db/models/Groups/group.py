@@ -4,8 +4,6 @@ from zoneinfo import ZoneInfo
 from ...database import Base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
-from ....schemas.group_schema import GroupBase
-from typing import List, Optional
 
 
 def get_thai_time():

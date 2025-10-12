@@ -1,7 +1,7 @@
 from ...database import Base
-from sqlalchemy import Column, Integer, ForeignKey , String, DateTime
-from sqlalchemy.orm import relationship, mapped_column, Mapped
-from ....schemas.group_member_schema import GroupMemberBase
+from sqlalchemy import Column, Integer,  DateTime
+from sqlalchemy.orm import relationship
+
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from typing import Optional

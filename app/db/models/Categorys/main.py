@@ -2,10 +2,9 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from ...database import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped, backref
-from ....schemas.category_schema import CategoryBase
-from typing import List, Optional
+from typing import Optional
 
 
 def get_thai_time():

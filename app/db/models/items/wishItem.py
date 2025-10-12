@@ -1,5 +1,5 @@
 from ...database import Base
-from sqlalchemy import Column, Integer, String, Float , DateTime, ForeignKey, DECIMAL
+from sqlalchemy import Column, Integer, String,  DateTime, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from app.schemas.wish_item_schema import WishPrivacy

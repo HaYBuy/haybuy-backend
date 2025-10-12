@@ -2,13 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from ...database import Base
 from datetime import datetime
-from typing import Optional
 from zoneinfo import ZoneInfo
-
-
-from ..Chats.chat_message import ChatMessage
-from ..Chats.chat_member import ChatMember
-from ..Chats.chat import Chat
 
 def get_thai_time():
     return datetime.now(ZoneInfo("Asia/Bangkok"))

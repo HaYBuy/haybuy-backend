@@ -4,7 +4,6 @@ from enum import Enum
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
-from typing import List
 
 
 class GroupRole(str, Enum):
