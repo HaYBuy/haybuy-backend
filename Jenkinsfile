@@ -20,6 +20,7 @@ pipeline {
         SONAR_HOST_URL = 'http://172.24.142.21:9000'
         SONAR_PROJECT_KEY = 'haybuy-backend'
         SONAR_PROJECT_NAME = 'HaYBuy Backend'
+        BRANCH_NAME = 'Dev'
     }
     
     stages {
