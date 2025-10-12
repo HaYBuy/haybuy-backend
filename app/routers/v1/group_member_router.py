@@ -176,9 +176,7 @@ async def get_members_in_group_public(group_id: int, db: Session = Depends(get_d
     # check ว่ามี group_id นี้อยู่จริงไหม
     db_group = (
         db.query(Group)
-        .filter(
-            Group.id == group_id, Group.deleted_at == None  # noqa: E711 - SQLAlchemy requires == None
-        )
+        .filter(Group.id == group_id, Group.deleted_at.is_(None))
         .first()
     )
     if not db_group:

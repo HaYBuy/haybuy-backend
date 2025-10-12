@@ -54,9 +54,7 @@ async def get_price_item_histories(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    item_db = (
-        db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
-    )  # noqa: E711 - SQLAlchemy requires == None
+    item_db = db.query(Item).filter(Item.id == item_id, Item.deleted_at.is_(None)).first()
     if not item_db:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -76,9 +74,7 @@ async def get_price_item_histories(
 # get item by id (detail page)
 @router.get("/{item_id}", response_model=ItemResponse)
 async def get_item_by_id(item_id: int, db: Session = Depends(get_db)):
-    db_item = (
-        db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
-    )  # noqa: E711 - SQLAlchemy requires == None
+    db_item = db.query(Item).filter(Item.id == item_id, Item.deleted_at.is_(None)).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -94,9 +90,7 @@ async def get_items_by_user(
 ):
     items = (
         db.query(Item)
-        .filter(
-            Item.owner_id == user_id, Item.deleted_at == None
-        )  # noqa: E711 - SQLAlchemy requires == None
+        .filter(Item.owner_id == user_id, Item.deleted_at.is_(None))
         .offset(skip)
         .limit(limit)
         .all()

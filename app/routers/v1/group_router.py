@@ -25,9 +25,7 @@ async def get_my_groups(
 ):
     groups = (
         db.query(Group)
-        .filter(
-            Group.owner_id == current_user["id"], Group.deleted_at == None
-        )  # noqa: E711 - SQLAlchemy requires == None
+        .filter(Group.owner_id == current_user["id"], Group.deleted_at.is_(None))
         .all()
     )
     return groups
@@ -131,9 +129,7 @@ async def delete_group(
 async def get_group_by_id(group_id: int, db: Session = Depends(get_db)):
     db_group = (
         db.query(Group)
-        .filter(
-            Group.id == group_id, Group.deleted_at == None
-        )  # noqa: E711 - SQLAlchemy requires == None
+        .filter(Group.id == group_id, Group.deleted_at.is_(None))
         .first()
     )
     if not db_group:
@@ -148,7 +144,7 @@ async def get_group_by_id(group_id: int, db: Session = Depends(get_db)):
 async def get_all_groups(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     groups = (
         db.query(Group)
-        .filter(Group.deleted_at == None)  # noqa: E711 - SQLAlchemy requires == None
+        .filter(Group.deleted_at.is_(None))
         .offset(skip)
         .limit(limit)
         .all()

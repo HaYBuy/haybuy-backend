@@ -26,7 +26,7 @@ async def get_user(db: Session = Depends(get_db)):
     Returns:
         List of user objects
     """
-    users = db.query(User).filter(User.deleted_at == None).all()
+    users = db.query(User).filter(User.deleted_at.is_(None)).all()
     return users
 
 

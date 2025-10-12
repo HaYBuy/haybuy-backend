@@ -21,7 +21,7 @@ async def get_items_by_group(
         db.query(Item)
         .filter(
             Item.group_id == group_id,
-            Item.deleted_at == None,  # noqa: E711 - SQLAlchemy requires == None
+            Item.deleted_at.is_(None),
         )
         .offset(skip)
         .limit(limit)
@@ -68,9 +68,7 @@ async def create_item_in_group(
             status_code=403, detail="item already add to this group or item not found"
         )
 
-    item_db = (
-        db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
-    )  # noqa: E711 - SQLAlchemy requires == None
+    item_db = db.query(Item).filter(Item.id == item_id, Item.deleted_at.is_(None)).first()
 
     if not item_db:
         raise HTTPException(status_code=404, detail="item not found")
