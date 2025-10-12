@@ -20,8 +20,9 @@ async def get_items_by_group(
     items = (
         db.query(Item)
         .filter(
-            Item.group_id == group_id, Item.deleted_at == None
-        )  # noqa: E711 - SQLAlchemy requires == None
+            Item.group_id == group_id,
+            Item.deleted_at == None,  # noqa: E711 - SQLAlchemy requires == None
+        )
         .offset(skip)
         .limit(limit)
         .all()
