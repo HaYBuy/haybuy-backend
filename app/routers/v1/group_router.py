@@ -26,9 +26,8 @@ async def get_my_groups(
     groups = (
         db.query(Group)
         .filter(
-            Group.owner_id == current_user["id"],
-            Group.deleted_at == None,  # noqa: E711 - SQLAlchemy requires == None
-        )
+            Group.owner_id == current_user["id"], Group.deleted_at == None
+        )  # noqa: E711 - SQLAlchemy requires == None
         .all()
     )
     return groups

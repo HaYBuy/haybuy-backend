@@ -95,9 +95,8 @@ async def get_items_by_user(
     items = (
         db.query(Item)
         .filter(
-            Item.owner_id == user_id,
-            Item.deleted_at == None,  # noqa: E711 - SQLAlchemy requires == None
-        )
+            Item.owner_id == user_id, Item.deleted_at == None
+        )  # noqa: E711 - SQLAlchemy requires == None
         .offset(skip)
         .limit(limit)
         .all()
