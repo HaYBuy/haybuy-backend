@@ -1,26 +1,46 @@
-from pydantic import BaseModel, Field, condecimal
+"""Item schema definitions."""
+
 from datetime import datetime
-from typing import Optional
+from decimal import Decimal
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field, ConfigDict
+
 
 class ItemStatus(str, Enum):
+    """Enumeration of possible item statuses."""
+
     AVAILABLE = "available"
     RESERVED = "reserved"
     SOLD = "sold"
     HIDDEN = "hidden"
 
+
 class ItemBase(BaseModel):
-    name: str
+    """Base item model with common fields."""
+
+    name: str = Field(..., min_length=1)
     description: Optional[str] = None
-    price: condecimal(max_digits=10, decimal_places=2)
-    quantity: int
+    price: Decimal = Field(
+        ..., ge=0, max_digits=10, decimal_places=2
+    )  # ge=0 means greater than or equal to 0
+    quantity: int = Field(..., ge=0)  # quantity must be >= 0
     status: ItemStatus = ItemStatus.AVAILABLE
     image_url: Optional[str] = None
-    search_text : Optional[str] = None
-    category_id: int = Field(..., gt=0 )
+    search_text: Optional[str] = None
+    category_id: int = Field(..., gt=0)
+
 
 class ItemCreate(ItemBase):
-    pass
+    """Schema for creating a new item."""
+
+
+class ItemStatusUpdate(BaseModel):
+    """Schema for updating item status only."""
+
+    status: ItemStatus
+
 
 class ItemResponse(ItemBase):
     id: int
@@ -30,5 +50,4 @@ class ItemResponse(ItemBase):
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

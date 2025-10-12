@@ -1,6 +1,4 @@
-from pydantic import BaseModel
-from datetime import datetime
-from typing import List, Optional
+from pydantic import BaseModel, ConfigDict
 
 
 class CartItemBase(BaseModel):
@@ -16,5 +14,4 @@ class CartItemResponse(CartItemBase):
     id: int
     price: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

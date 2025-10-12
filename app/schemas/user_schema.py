@@ -1,14 +1,16 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 
 
 class UserBase(BaseModel):
-    username: str
-    full_name: str
+    username: str = Field(..., min_length=1, description="Username must not be empty")
+    full_name: str = Field(..., min_length=1, description="Full name must not be empty")
     email: EmailStr
 
+
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(..., min_length=1, description="Password must not be empty")
+
 
 class UserResponse(UserBase):
     id: int
@@ -18,6 +20,4 @@ class UserResponse(UserBase):
     deleted_at: datetime | None = None
     last_login: datetime | None = None
 
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

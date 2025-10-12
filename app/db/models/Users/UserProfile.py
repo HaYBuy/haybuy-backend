@@ -1,7 +1,6 @@
 from sqlalchemy import Column, String, Boolean, Float, TIMESTAMP, Integer, ForeignKey
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 import datetime
-from geoalchemy2 import Geometry, WKBElement
 from app.db.database import Base
 
 class UserProfile(Base):

@@ -1,10 +1,9 @@
 from ...database import Base
-from sqlalchemy import Column, Integer, ForeignKey , String, DateTime
+from sqlalchemy import Column, ForeignKey , DateTime
 from sqlalchemy.orm import relationship, mapped_column, Mapped
-from ....schemas.group_member_schema import GroupMemberBase
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from typing import Optional
+
 def get_thai_time():
     return datetime.now(ZoneInfo("Asia/Bangkok"))
 
