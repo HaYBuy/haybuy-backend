@@ -1,0 +1,7 @@
+services:
+  api:
+    # เอาโค้ดในเครื่องแมปเข้าคอนเทนเนอร์ เพื่อให้แก้ไฟล์แล้วรีโหลดได้
+    volumes:
+      - .:/app
+    # คำสั่งรัน uvicorn พร้อม reload
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
