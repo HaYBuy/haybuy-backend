@@ -20,4 +20,4 @@ class ChatMember(Base):
 
     # ความสัมพันธ์
     chat = relationship("Chat", back_populates="members")
-    user = relationship("User", back_populates="chat_members")  
+    user = relationship("User", back_populates="chat_members")

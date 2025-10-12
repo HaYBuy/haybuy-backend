@@ -16,15 +16,15 @@ router = APIRouter(prefix="/chats", tags=["Chats"])
 # สร้าง Chat ใหม่
 @router.post("/", response_model=ChatResponse)
 def create_chat(
-    chat_data: ChatCreate, 
-    db: Session = Depends(get_db), 
+    chat_data: ChatCreate,
+    db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
     ):
 
     user = db.get(User, chat_data.participant_id)
     if not user:
         raise HTTPException(status_code=404, detail="Participant not found")
-    
+
     new_chat = Chat()
     db.add(new_chat)
     db.commit()
@@ -56,7 +56,7 @@ def send_message(message_data: ChatMessageCreate, db: Session = Depends(get_db),
 
     if not is_member:
         raise HTTPException(status_code=403, detail="You are not a member of this chat")
-    
+
     if not message_data.image_url and not message_data.text:
         raise HTTPException(status_code=400, detail="message empyty")
 
@@ -74,7 +74,7 @@ def send_message(message_data: ChatMessageCreate, db: Session = Depends(get_db),
 # ดึงข้อความทั้งหมดของ chat
 @router.get("/{chat_id}/messages", response_model=List[ChatMessageResponse])
 def get_chat_messages(
-    chat_id: int, 
+    chat_id: int,
     db: Session = Depends(get_db),
     current_user : dict = Depends(get_current_user)
     ):
@@ -82,11 +82,11 @@ def get_chat_messages(
     chat = db.get(Chat, chat_id)
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    
+
     is_member = db.query(ChatMember).filter(
         ChatMember.chat_id == chat_id,
         ChatMember.user_id == current_user["id"]
-    ).first()   
+    ).first()
 
     if not is_member:
         raise HTTPException(status_code=403, detail="You are not a member of this chat")
@@ -98,6 +98,6 @@ def get_chat_messages(
 def get_user_chats(db: Session = Depends(get_db),
                    current_user : dict = Depends(get_current_user)
                    ):
-    
+
     chats = db.query(Chat).join(ChatMember).filter(ChatMember.user_id == current_user["id"]).order_by(Chat.updated_at.desc()).all()
     return chats

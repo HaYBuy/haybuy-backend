@@ -6,8 +6,8 @@ from typing import Optional
 from zoneinfo import ZoneInfo
 
 
-from ..Chats.chat_message import ChatMessage 
-from ..Chats.chat_member import ChatMember 
+from ..Chats.chat_message import ChatMessage
+from ..Chats.chat_member import ChatMember
 from ..Chats.chat import Chat
 
 def get_thai_time():
@@ -28,7 +28,7 @@ class User(Base):
 
     created_at = Column(DateTime(timezone=True), default=get_thai_time)
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)
-    deleted_at = Column(DateTime(timezone=True), nullable=True) 
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
     last_login = Column(DateTime(timezone=True), nullable=True)
 
     items = relationship("Item", back_populates="owner")
@@ -47,4 +47,3 @@ class User(Base):
     transactions_sold = relationship("Transaction", foreign_keys="[Transaction.seller_id]", back_populates="seller")
     transactions_bought = relationship("Transaction", foreign_keys="[Transaction.buyer_id]", back_populates="buyer")
 
- 

@@ -6,7 +6,7 @@ from app.db.models.Groups.groupMember import GroupMember
 from ...db.database import get_db
 from ...db.models.items.item import Item
 from ...db.models.Groups.group import Group
-from ...schemas.item_schema import  ItemResponse
+from ...schemas.item_schema import ItemResponse
 from ...core.security import get_current_user
 
 router = APIRouter(prefix="/group_item", tags=["group_item"])

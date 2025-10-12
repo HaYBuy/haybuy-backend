@@ -6,11 +6,11 @@ from .routers import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine) 
+    Base.metadata.create_all(bind=engine)
     yield
 
 app = FastAPI(lifespan=lifespan)
-    
+
 app.include_router(api_router)
 
 

@@ -19,7 +19,7 @@ class Group(Base):
     description = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     follower_count = Column(Integer, default=0)
-    
+
     owner_id : Mapped[int] = mapped_column(ForeignKey("users.id"))
     # member_ids : Mapped[int] = Column(String, nullable=True)  # Comma-separated user IDs
 
@@ -31,5 +31,5 @@ class Group(Base):
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    
+
 

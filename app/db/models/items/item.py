@@ -28,12 +28,12 @@ class Item(Base):
     created_at = Column(DateTime(timezone=True), default=get_thai_time)
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
-    
+
     owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"), nullable=True)
 
-    owner = relationship("User", back_populates="items")  
+    owner = relationship("User", back_populates="items")
     group = relationship("GroupItem", back_populates="item")
     price_histories = relationship("PriceHistory", back_populates="item")
     wishItem = relationship("WishItem", back_populates="itemWish")

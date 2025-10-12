@@ -23,6 +23,6 @@ class WishItem(Base):
     itemWish = relationship("Item", back_populates="wishItem")
 
 
-    
+
 
 

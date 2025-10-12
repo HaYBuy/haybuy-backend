@@ -36,7 +36,7 @@ def add_to_cart(
         db.commit()
         db.refresh(cart)
 
- 
+
     product = db.get(Item, item_data.product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -57,7 +57,7 @@ def add_to_cart(
         product_id=item_data.product_id,
         quantity=item_data.quantity,
         price=product.price,
-        
+
     )
     db.add(new_item)
     db.commit()

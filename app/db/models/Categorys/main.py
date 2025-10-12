@@ -11,7 +11,7 @@ from typing import List, Optional
 def get_thai_time():
     return datetime.now(ZoneInfo("Asia/Bangkok"))
 
-class Category(Base):   
+class Category(Base):
     __tablename__ = "categories"
 
     id : Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -29,4 +29,4 @@ class Category(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=get_thai_time)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=get_thai_time, onupdate=get_thai_time)
 
-    
+

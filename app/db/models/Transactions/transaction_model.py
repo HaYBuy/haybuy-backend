@@ -28,7 +28,7 @@ class Transaction(Base):
 
     seller_accept = Column(Boolean, nullable=False, default=False)
     seller_accept_at = Column(DateTime, nullable=True)
-    
+
     created_at = Column(DateTime(timezone=True), default=get_thai_time)
     updated_at = Column(DateTime(timezone=True), default=get_thai_time, onupdate=get_thai_time)
     cancelled_at = Column(DateTime(timezone=True), nullable=True)

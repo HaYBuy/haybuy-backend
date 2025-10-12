@@ -21,4 +21,4 @@ class ChatMessage(Base):
 
     # ความสัมพันธ์
     chat = relationship("Chat", back_populates="messages")
-    sender = relationship("User", back_populates="send_messages") 
+    sender = relationship("User", back_populates="send_messages")
