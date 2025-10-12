@@ -1,6 +1,6 @@
 """Health check endpoint for monitoring and CI/CD."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.db.database import engine
@@ -35,9 +35,6 @@ async def health_check():
             "database": "disconnected",
             "error": f"Database error: {str(db_error)}",
         }
-    except Exception as general_error:
-        return {
-            "status": "unhealthy",
-            "database": "unknown",
-            "error": f"Unexpected error: {str(general_error)}",
-        }
+    except HTTPException as http_error:
+        # Let FastAPI handle HTTPExceptions as normal
+        raise http_error
