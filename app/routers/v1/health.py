@@ -1,6 +1,6 @@
 """Health check endpoint for monitoring and CI/CD."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.db.database import engine
