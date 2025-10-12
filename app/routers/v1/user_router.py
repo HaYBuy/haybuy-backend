@@ -30,6 +30,31 @@ async def get_user(db: Session = Depends(get_db)):
     return users
 
 
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_info(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Get current authenticated user's information.
+
+    Args:
+        db: Database session
+        current_user: Current authenticated user from JWT token
+
+    Returns:
+        User object
+
+    Raises:
+        HTTPException: If user not found
+    """
+    user_db = db.query(User).filter(User.id == current_user["id"]).first()
+    if not user_db:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user_db
+
+
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     """
