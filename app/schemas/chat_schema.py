@@ -1,15 +1,17 @@
-from enum import Enum
-from pydantic import BaseModel, Field , constr, ConfigDict
-from typing import Optional, Pattern, Annotated
 from datetime import datetime
-from typing import List
+from enum import Enum
+from typing import Annotated, List, Optional, Pattern
+
+from pydantic import BaseModel, ConfigDict
 
 
 class ChatBase(BaseModel):
     pass
 
+
 class ChatCreate(ChatBase):
     participant_id: int
+
 
 class ChatResponse(ChatBase):
     id: int

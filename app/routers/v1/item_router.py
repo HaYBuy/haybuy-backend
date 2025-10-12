@@ -1,24 +1,21 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional
-
 from datetime import datetime
+from typing import List, Optional
 from zoneinfo import ZoneInfo
 
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
+from app.core.security import get_current_user
+from app.db.database import get_db
 from app.db.models.Groups.groupMember import GroupMember
-from ...db.database import get_db
-
-from ...db.models.items.item import Item
+from app.db.models.items.item import Item
+from app.db.models.PriceHistorys.main import PriceHistory
 from app.schemas.item_schema import (
     ItemCreate,
     ItemResponse,
     ItemStatusUpdate,
 )
-from app.db.models.PriceHistorys.main import PriceHistory
 from app.schemas.price_history import PriceHistoryResponse
-
-from ...core.security import get_current_user
 
 router = APIRouter(prefix="/item", tags=["item"])
 
@@ -57,7 +54,9 @@ async def get_price_item_histories(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    item_db = db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
+    item_db = (
+        db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
+    )  # noqa: E711 - SQLAlchemy requires == None
     if not item_db:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -77,7 +76,9 @@ async def get_price_item_histories(
 # get item by id (detail page)
 @router.get("/{item_id}", response_model=ItemResponse)
 async def get_item_by_id(item_id: int, db: Session = Depends(get_db)):
-    db_item = db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
+    db_item = (
+        db.query(Item).filter(Item.id == item_id, Item.deleted_at == None).first()
+    )  # noqa: E711 - SQLAlchemy requires == None
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -93,7 +94,9 @@ async def get_items_by_user(
 ):
     items = (
         db.query(Item)
-        .filter(Item.owner_id == user_id, Item.deleted_at == None)
+        .filter(
+            Item.owner_id == user_id, Item.deleted_at == None
+        )  # noqa: E711 - SQLAlchemy requires == None
         .offset(skip)
         .limit(limit)
         .all()

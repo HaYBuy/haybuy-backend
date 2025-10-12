@@ -1,16 +1,16 @@
 """User management router."""
 
-from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 
-from app.db.models.Users.UserProfile import UserProfile
-from ...db.models.Users.User import User
-from app.schemas.user_schema import UserCreate, UserResponse
-from app.core.security import get_current_user
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
+from app.core.security import get_current_user
 from app.db.database import get_db
+from app.db.models.Users.User import User
+from app.db.models.Users.UserProfile import UserProfile
 from app.routers.v1.auth_router import hash_password
+from app.schemas.user_schema import UserCreate, UserResponse
 
 router = APIRouter(prefix="/user", tags=["user"])
 

@@ -1,16 +1,19 @@
-from enum import Enum
-from pydantic import BaseModel, Field , constr, ConfigDict
-from typing import Optional, Pattern, Annotated
 from datetime import datetime
-from typing import List
+from enum import Enum
+from typing import Annotated, List, Optional, Pattern
+
+from pydantic import BaseModel, ConfigDict
+
 
 class ChatMessageBase(BaseModel):
-    chat_id : int
+    chat_id: int
     text: Optional[str]
     image_url: Optional[str]
 
+
 class ChatMessageCreate(ChatMessageBase):
     pass
+
 
 class ChatMessageResponse(ChatMessageBase):
     id: int

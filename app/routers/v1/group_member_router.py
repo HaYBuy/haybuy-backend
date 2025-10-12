@@ -175,7 +175,9 @@ async def get_members_in_group(
 async def get_members_in_group_public(group_id: int, db: Session = Depends(get_db)):
     # check ว่ามี group_id นี้อยู่จริงไหม
     db_group = (
-        db.query(Group).filter(Group.id == group_id, Group.deleted_at == None).first()
+        db.query(Group)
+        .filter(Group.id == group_id, Group.deleted_at == None)
+        .first()  # noqa: E711 - SQLAlchemy requires == None
     )
     if not db_group:
         raise HTTPException(status_code=404, detail="Group not found")
