@@ -35,6 +35,3 @@ async def health_check():
             "database": "disconnected",
             "error": f"Database error: {str(db_error)}",
         }
-    except HTTPException as http_error:
-        # Let FastAPI handle HTTPExceptions as normal
-        raise http_error
